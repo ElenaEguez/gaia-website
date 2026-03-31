@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 40" fill="none">
+  <!-- Hoja decorativa -->
+  <path d="M8 30 Q6 18 18 10 Q14 22 24 28 Q16 28 8 30Z" fill="#c8a96e"/>
+  <path d="M18 10 Q28 6 34 16 Q26 14 24 28 Q20 18 18 10Z" fill="#9e7d4a"/>
+  <!-- Texto -->
+  <text x="42" y="27" font-family="Georgia, serif" font-size="18" font-weight="700" fill="#2d2d2d">Gaia</text>
+  <text x="84" y="27" font-family="Georgia, serif" font-size="18" font-weight="400" fill="#c8a96e">Bolivia</text>
+</svg>

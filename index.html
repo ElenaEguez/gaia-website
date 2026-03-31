@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gaia Bolivia Beauty — Cosméticos naturales</title>
+  <meta name="description" content="Descubre los mejores productos de belleza natural de Bolivia. Cremas, esencias y más.">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <style>
+    /* ── SECCIÓN 1: Hero ───────────────────────────────────────────────── */
+    .hero {
+      min-height: calc(100vh - var(--navbar-h));
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(160deg, #0e0a04 0%, #1e1208 30%, #2d1f0a 60%, #5a3c18 85%, #9e7d4a 100%);
+      padding: 5rem 1.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 60%, rgba(200,169,110,.15) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .hero__content {
+      position: relative; z-index: 1;
+      max-width: 700px;
+    }
+    .hero__eyebrow {
+      display: inline-block;
+      font-size: .72rem; font-weight: 600; letter-spacing: .22em;
+      text-transform: uppercase; color: var(--accent);
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 {
+      color: #fff;
+      font-size: clamp(2.8rem, 7vw, 5rem);
+      margin-bottom: 1.25rem;
+    }
+    .hero__sub {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,.72);
+      max-width: 480px;
+      margin: 0 auto 2.75rem;
+      line-height: 1.7;
+    }
+
+    /* ── Skeleton shimmer ──────────────────────────────────────────────── */
+    @keyframes shimmer {
+      0%   { background-position: -600px 0; }
+      100% { background-position:  600px 0; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg,
+        #ede3d5 25%, #f5ede0 50%, #ede3d5 75%);
+      background-size: 600px 100%;
+      animation: shimmer 1.4s infinite linear;
+      border-radius: var(--radius);
+    }
+    .skeleton-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .skeleton-img  { height: 200px; border-radius: 0; }
+    .skeleton-body { padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: .65rem; }
+    .skeleton-line { height: 13px; }
+    .skeleton-line.short { width: 50%; }
+    .skeleton-line.price { width: 35%; height: 16px; }
+
+    /* ── SECCIÓN 2: Categorías ─────────────────────────────────────────── */
+    .categories-section {
+      padding: 5rem 0;
+      background: var(--bg);
+    }
+    .categories-section .section-intro {
+      text-align: center; margin-bottom: 2.75rem;
+    }
+    .categories-section .section-intro h2 { margin-bottom: .4rem; }
+
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+    }
+    @media (max-width: 900px) {
+      .categories-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (max-width: 680px) {
+      .categories-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    }
+
+    .category-card {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: .8rem;
+      aspect-ratio: 1 / 1;
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem 1rem;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      transition: border-color var(--transition), box-shadow var(--transition),
+                  transform var(--transition);
+    }
+    .category-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow);
+      transform: translateY(-4px);
+    }
+    .category-card__icon { font-size: 2.25rem; line-height: 1; }
+    .category-card__name {
+      font-family: var(--font-heading);
+      font-size: 1rem; font-weight: 600;
+      color: var(--secondary);
+      line-height: 1.3;
+      margin: 0;
+    }
+    /* skeleton state for category cards */
+    .category-card.sk { aspect-ratio: 1/1; border-radius: var(--radius-lg); }
+
+    /* ── SECCIÓN 3: Productos ──────────────────────────────────────────── */
+    .products-section {
+      padding: 5rem 0;
+      background: #fdf9f4;
+    }
+    .section-header {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-bottom: 2rem;
+    }
+    .section-header h2 { margin-bottom: .25rem; }
+    .section-header p  { color: var(--text-light); font-size: .9rem; }
+
+    /* ── SECCIÓN 4: Banner promocional ────────────────────────────────── */
+    .promo-banner {
+      padding: 4rem 1.5rem;
+      text-align: center;
+      background: linear-gradient(135deg, #c8a96e 0%, #b8924e 45%, #9e7d4a 100%);
+    }
+    .promo-banner h2 {
+      color: #fff;
+      font-size: clamp(1.7rem, 4vw, 2.6rem);
+      margin-bottom: .6rem;
+    }
+    .promo-banner p {
+      color: rgba(255,255,255,.88);
+      font-size: 1.05rem;
+      max-width: 480px; margin: 0 auto 2rem;
+    }
+    #promo-whatsapp { display: none; }
+    .promo-banner .btn-white {
+      background: #fff;
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+    .promo-banner .btn-white:hover {
+      background: var(--accent);
+    }
+
+    /* ── WhatsApp FAB ──────────────────────────────────────────────────── */
+    .whatsapp-fab {
+      position: fixed; bottom: 1.75rem; right: 1.75rem;
+      z-index: 1000;
+      width: 58px; height: 58px;
+      background: #25d366;
+      border-radius: 50%;
+      display: none; /* JS muestra cuando hay whatsapp */
+      align-items: center; justify-content: center;
+      font-size: 1.65rem;
+      box-shadow: 0 4px 18px rgba(37,211,102,.45);
+      text-decoration: none;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .whatsapp-fab:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 24px rgba(37,211,102,.55);
+    }
+  </style>
+</head>
+<body data-page="home">
+
+  <!-- ── Navbar ── -->
+  <nav class="navbar" role="navigation" aria-label="Navegación principal">
+    <div class="navbar__inner">
+      <a href="index.html" class="navbar__logo">
+        <img src="assets/gaia-logo.svg" alt="Gaia Bolivia" onerror="this.style.display='none'">
+        <span class="navbar__logo-text">Gaia <span>Bolivia</span></span>
+      </a>
+      <ul class="navbar__nav" role="list">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="tienda.html">Tienda</a></li>
+      </ul>
+      <div class="navbar__actions">
+        <a href="carrito.html" class="cart-btn" aria-label="Ver carrito">
+          🛒
+          <span class="badge" id="cart-badge" style="display:none">0</span>
+        </a>
+        <button class="hamburger" aria-label="Menú" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile nav -->
+  <div class="mobile-nav" role="navigation" aria-label="Menú móvil">
+    <a href="index.html">Inicio</a>
+    <a href="tienda.html">Tienda</a>
+    <a href="carrito.html">🛒 Carrito</a>
+  </div>
+
+  <main class="page-content">
+
+    <!-- ══ SECCIÓN 1 — Hero ══════════════════════════════════════════════ -->
+    <section class="hero">
+      <div class="hero__content">
+        <span class="hero__eyebrow">✦ Gaia Bolivia Beauty</span>
+        <h1>Belleza que transforma</h1>
+        <p class="hero__sub">
+          Descubre nuestra colección de productos de belleza y cuidado personal
+        </p>
+        <a href="tienda.html" class="btn btn-primary btn-lg">Ver Colección</a>
+      </div>
+    </section>
+
+    <!-- ══ SECCIÓN 2 — Categorías destacadas ════════════════════════════ -->
+    <section class="categories-section">
+      <div class="container">
+        <div class="section-intro">
+          <h2>Categorías</h2>
+          <p>Encuentra exactamente lo que buscas</p>
+        </div>
+        <div class="categories-grid" id="categories-grid" aria-live="polite">
+          <!-- Skeletons iniciales -->
+          <div class="category-card sk skeleton"></div>
+          <div class="category-card sk skeleton"></div>
+          <div class="category-card sk skeleton"></div>
+          <div class="category-card sk skeleton"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ SECCIÓN 3 — Productos destacados ═════════════════════════════ -->
+    <section class="products-section">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2>Más Vendidos</h2>
+            <p>Los favoritos de nuestra comunidad</p>
+          </div>
+          <a href="tienda.html" class="btn btn-outline">Ver todos →</a>
+        </div>
+        <div class="product-grid" id="featured-products" aria-live="polite">
+          <!-- Skeletons inyectados por JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ SECCIÓN 4 — Banner promocional ═══════════════════════════════ -->
+    <section class="promo-banner">
+      <div class="container">
+        <h2>Envíos a toda Bolivia 🇧🇴</h2>
+        <p id="store-description">
+          Llevamos belleza hasta tu puerta en todas las ciudades del país.
+        </p>
+        <a id="promo-whatsapp" href="#" data-whatsapp
+          class="btn btn-lg btn-white" aria-label="Contactar por WhatsApp">
+          💬 Escribir por WhatsApp
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ══ SECCIÓN 5 — Footer ════════════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+
+        <!-- Marca -->
+        <div class="footer__brand">
+          <span class="navbar__logo-text">
+            Gaia <span style="color:var(--primary)">Bolivia</span>
+          </span>
+          <p>Productos de belleza natural boliviana. Cuidamos tu piel con el poder de la naturaleza.</p>
+          <div class="footer__social">
+            <a href="#" data-instagram aria-label="Instagram">📸</a>
+            <a href="#" data-tiktok   aria-label="TikTok">🎵</a>
+            <a href="#" data-facebook aria-label="Facebook">👍</a>
+          </div>
+        </div>
+
+        <!-- Links: Tienda / Nosotros -->
+        <div>
+          <p class="footer__heading">Tienda</p>
+          <ul class="footer__links">
+            <li><a href="tienda.html">Todos los productos</a></li>
+            <li><a href="carrito.html">Mi carrito</a></li>
+          </ul>
+          <p class="footer__heading" style="margin-top:1.5rem">Nosotros</p>
+          <ul class="footer__links">
+            <li><a href="index.html">Inicio</a></li>
+          </ul>
+        </div>
+
+        <!-- Contacto -->
+        <div>
+          <p class="footer__heading">Contacto</p>
+          <ul class="footer__links">
+            <li><a href="#" data-whatsapp>💬 WhatsApp</a></li>
+            <li><a href="#" data-instagram>📸 Instagram</a></li>
+            <li><a href="#" data-tiktok>🎵 TikTok</a></li>
+            <li><a href="#" data-facebook>👍 Facebook</a></li>
+          </ul>
+        </div>
+
+      </div>
+      <div class="footer__bottom">
+        <span>© 2025 Gaia Bolivia Beauty. Todos los derechos reservados.</span>
+        <span>Hecho con ♥ en Bolivia</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ── WhatsApp botón flotante (FAB) ── -->
+  <a class="whatsapp-fab" href="#" data-whatsapp
+    aria-label="Contactar por WhatsApp" title="WhatsApp">
+    💬
+  </a>
+
+  <script src="js/api.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

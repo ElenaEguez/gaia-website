@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — Gaia Bolivia Beauty</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <style>
+    .checkout-wrap { padding: 2rem 0 4rem; }
+    .checkout-wrap h1 { font-size: 1.75rem; margin-bottom: 1.75rem; }
+
+    /* Form sections */
+    .form-section {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .form-section__title {
+      font-family: var(--font-heading);
+      font-size: 1.15rem; font-weight: 600; color: var(--secondary);
+      margin-bottom: 1.25rem; padding-bottom: .75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .form-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    @media (max-width: 560px) { .form-row { grid-template-columns: 1fr; } }
+
+    /* Delivery cards */
+    .delivery-options { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: .5rem; }
+    @media (max-width: 480px) { .delivery-options { grid-template-columns: 1fr; } }
+    .delivery-card {
+      border: 2px solid var(--border); border-radius: var(--radius);
+      padding: 1rem 1.25rem; cursor: pointer;
+      transition: border-color var(--transition), background var(--transition);
+      display: flex; gap: .75rem; align-items: flex-start; position: relative;
+    }
+    .delivery-card input[type=radio] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .delivery-card.selected,
+    .delivery-card:has(input:checked) { border-color: var(--primary); background: rgba(200,169,110,.07); }
+    .delivery-card__icon  { font-size: 1.4rem; }
+    .delivery-card__label { font-size: .9rem; font-weight: 600; color: var(--secondary); }
+    .delivery-card__sub   { font-size: .78rem; color: var(--text-light); }
+
+    #address-group { display: none; margin-top: 1rem; }
+    #address-group.show { display: block; }
+
+    /* Payment cards */
+    .payment-options { display: grid; grid-template-columns: repeat(3,1fr); gap: .75rem; margin-top: .5rem; }
+    @media (max-width: 480px) { .payment-options { grid-template-columns: 1fr; } }
+    .payment-card {
+      border: 2px solid var(--border); border-radius: var(--radius);
+      padding: 1rem; text-align: center; cursor: pointer; position: relative;
+      transition: border-color var(--transition), background var(--transition);
+    }
+    .payment-card input[type=radio] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .payment-card.selected,
+    .payment-card:has(input:checked) { border-color: var(--primary); background: rgba(200,169,110,.07); }
+    .payment-card__icon  { font-size: 1.5rem; margin-bottom: .4rem; }
+    .payment-card__label { font-size: .85rem; font-weight: 500; color: var(--secondary); }
+    .payment-card__sub   { font-size: .72rem; color: var(--text-light); margin-top: .15rem; }
+
+    /* QR preview */
+    #payment-qr-preview {
+      display: none;
+      margin-top: 1.25rem;
+      padding: 1.5rem;
+      background: rgba(200,169,110,.07);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    #payment-qr-preview img {
+      width: 160px; height: 160px; object-fit: contain;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      margin: 0 auto .75rem; display: block;
+    }
+    #payment-qr-preview p { font-size: .85rem; color: var(--text-light); }
+    #payment-qr-preview strong { color: var(--secondary); }
+
+    /* Sticky summary */
+    #checkout-items-summary { position: sticky; top: calc(var(--navbar-h) + 1rem); }
+
+    /* WhatsApp FAB */
+    .whatsapp-fab {
+      position: fixed; bottom: 1.75rem; right: 1.75rem; z-index: 1000;
+      width: 56px; height: 56px; background: #25d366; border-radius: 50%;
+      display: none; align-items: center; justify-content: center;
+      font-size: 1.6rem; box-shadow: 0 4px 18px rgba(37,211,102,.4);
+      text-decoration: none; transition: transform var(--transition);
+    }
+    .whatsapp-fab:hover { transform: scale(1.1); }
+  </style>
+</head>
+<body data-page="checkout">
+
+  <!-- Navbar -->
+  <nav class="navbar" role="navigation" aria-label="Navegación principal">
+    <div class="navbar__inner">
+      <a href="index.html" class="navbar__logo">
+        <img src="assets/gaia-logo.svg" alt="Gaia Bolivia" onerror="this.style.display='none'">
+        <span class="navbar__logo-text">Gaia <span>Bolivia</span></span>
+      </a>
+      <ul class="navbar__nav" role="list">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="tienda.html">Tienda</a></li>
+      </ul>
+      <div class="navbar__actions">
+        <a href="carrito.html" class="cart-btn" aria-label="Ver carrito">
+          🛒 <span class="badge" id="cart-badge" style="display:none">0</span>
+        </a>
+        <button class="hamburger" aria-label="Menú" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+  <div class="mobile-nav">
+    <a href="index.html">Inicio</a>
+    <a href="tienda.html">Tienda</a>
+    <a href="carrito.html">🛒 Carrito</a>
+  </div>
+
+  <main class="page-content">
+    <div class="container checkout-wrap">
+
+      <h1>Finalizar pedido</h1>
+
+      <!-- Steps indicator -->
+      <div class="steps" style="margin-bottom:2rem">
+        <div class="step done">
+          <div class="step__dot">✓</div>
+          <span class="step__label">Carrito</span>
+        </div>
+        <div class="step-line done" id="step-line-1"></div>
+        <div class="step active" id="step-datos">
+          <div class="step__dot">2</div>
+          <span class="step__label">Datos</span>
+        </div>
+        <div class="step-line" id="step-line-2"></div>
+        <div class="step" id="step-pago">
+          <div class="step__dot">3</div>
+          <span class="step__label">Pago</span>
+        </div>
+        <div class="step-line" id="step-line-3"></div>
+        <div class="step">
+          <div class="step__dot">4</div>
+          <span class="step__label">Confirmación</span>
+        </div>
+      </div>
+
+      <div class="layout-checkout">
+
+        <!-- ── Form ── -->
+        <div>
+          <form id="checkout-form" novalidate>
+
+            <!-- ══ PASO 1 ══ -->
+            <div id="step-panel-1">
+
+              <!-- Datos del cliente -->
+              <div class="form-section">
+                <h3 class="form-section__title">👤 Datos de contacto</h3>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="customer_name">
+                      Nombre completo <span class="req">*</span>
+                    </label>
+                    <input type="text" id="customer_name" name="customer_name"
+                      class="form-input" placeholder="Tu nombre completo"
+                      required autocomplete="name">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="customer_phone">
+                      Teléfono / WhatsApp <span class="req">*</span>
+                    </label>
+                    <input type="tel" id="customer_phone" name="customer_phone"
+                      class="form-input" placeholder="7XXXXXXX"
+                      required autocomplete="tel">
+                    <span class="form-hint">Número celular Bolivia (8 dígitos)</span>
+                  </div>
+                </div>
+                <div class="form-group mt-2">
+                  <label class="form-label" for="customer_email">
+                    Email <span style="color:var(--text-light);font-weight:400">(opcional)</span>
+                  </label>
+                  <input type="email" id="customer_email" name="customer_email"
+                    class="form-input" placeholder="tu@email.com" autocomplete="email">
+                </div>
+              </div>
+
+              <!-- Método de entrega -->
+              <div class="form-section">
+                <h3 class="form-section__title">🚚 Método de entrega</h3>
+                <div class="delivery-options">
+                  <label class="delivery-card" id="card-pickup">
+                    <input type="radio" name="delivery_method" value="pickup" required>
+                    <span class="delivery-card__icon">🏪</span>
+                    <div>
+                      <p class="delivery-card__label">Recoger en tienda</p>
+                      <p class="delivery-card__sub">Coordinar punto de entrega</p>
+                    </div>
+                  </label>
+                  <label class="delivery-card" id="card-delivery">
+                    <input type="radio" name="delivery_method" value="delivery">
+                    <span class="delivery-card__icon">🚚</span>
+                    <div>
+                      <p class="delivery-card__label">Envío a domicilio</p>
+                      <p class="delivery-card__sub">Costo a coordinar</p>
+                    </div>
+                  </label>
+                </div>
+                <div id="address-group">
+                  <div class="form-group">
+                    <label class="form-label" for="customer_address">
+                      Dirección de entrega <span class="req">*</span>
+                    </label>
+                    <textarea id="customer_address" name="customer_address"
+                      class="form-textarea" rows="2"
+                      placeholder="Calle, número, barrio, ciudad..."></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" id="btn-next" class="btn btn-primary btn-lg btn-full">
+                Continuar al pago →
+              </button>
+              <a href="carrito.html" class="btn btn-ghost btn-full mt-1">
+                ← Volver al carrito
+              </a>
+            </div>
+
+            <!-- ══ PASO 2 ══ (oculto hasta que pasen el paso 1) -->
+            <div id="step-panel-2" style="display:none">
+
+              <!-- Método de pago -->
+              <div class="form-section">
+                <h3 class="form-section__title">💳 Método de pago</h3>
+                <div class="payment-options">
+                  <label class="payment-card" id="card-tigo">
+                    <input type="radio" name="payment_method" value="tigo_money" required>
+                    <div class="payment-card__icon">📱</div>
+                    <div class="payment-card__label">Tigo Money</div>
+                    <div class="payment-card__sub">Pago QR</div>
+                  </label>
+                  <label class="payment-card" id="card-banco">
+                    <input type="radio" name="payment_method" value="banco_union">
+                    <div class="payment-card__icon">🏦</div>
+                    <div class="payment-card__label">Banco Unión</div>
+                    <div class="payment-card__sub">Transferencia QR</div>
+                  </label>
+                  <label class="payment-card" id="card-efectivo">
+                    <input type="radio" name="payment_method" value="efectivo">
+                    <div class="payment-card__icon">💵</div>
+                    <div class="payment-card__label">Efectivo</div>
+                    <div class="payment-card__sub">Al recoger</div>
+                  </label>
+                </div>
+
+                <!-- QR preview (se muestra cuando selecciona Tigo o Banco) -->
+                <div id="payment-qr-preview">
+                  <img src="https://placehold.co/200x200/e8d5b0/9e7d4a?text=QR+Pago"
+                    alt="QR de pago" id="qr-preview-img">
+                  <p>
+                    <strong id="qr-method-name">Tigo Money</strong><br>
+                    El QR de pago definitivo se generará al confirmar tu pedido.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Notas -->
+              <div class="form-section">
+                <h3 class="form-section__title">📝 Notas (opcional)</h3>
+                <div class="form-group">
+                  <textarea name="notes" class="form-textarea" rows="2"
+                    placeholder="Instrucciones especiales, horario de entrega preferido..."></textarea>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-lg btn-full" id="btn-submit">
+                Confirmar Pedido →
+              </button>
+              <button type="button" id="btn-back" class="btn btn-ghost btn-full mt-1">
+                ← Volver a mis datos
+              </button>
+            </div>
+
+          </form>
+        </div>
+
+        <!-- ── Resumen del pedido (sticky) ── -->
+        <aside id="checkout-items-summary"></aside>
+
+      </div>
+    </div>
+  </main>
+
+  <a class="whatsapp-fab" href="#" data-whatsapp aria-label="WhatsApp">💬</a>
+
+  <script src="js/api.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

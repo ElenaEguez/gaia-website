@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmación de Pedido — Gaia Bolivia Beauty</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <style>
+    .confirmation-wrap {
+      max-width: 640px; margin: 0 auto; padding: 2rem 0 4rem;
+    }
+
+    /* Steps */
+    .confirmation-wrap .steps { margin-bottom: 2.25rem; }
+
+    /* ── Main card ── */
+    .conf-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    /* Header */
+    .conf-card__header {
+      background: linear-gradient(135deg, #1a3a1a 0%, #2d4a1a 100%);
+      padding: 2.5rem 2rem;
+      text-align: center;
+    }
+    .conf-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: #4caf50;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; color: var(--white);
+      margin: 0 auto 1.1rem;
+      box-shadow: 0 4px 16px rgba(76,175,80,.4);
+    }
+    .conf-card__header h2 { color: var(--white); font-size: 1.6rem; margin-bottom: .35rem; }
+    .conf-card__header .order-id {
+      display: inline-block;
+      background: rgba(255,255,255,.15);
+      color: #a8d5a8;
+      font-size: .82rem; font-weight: 600;
+      letter-spacing: .08em; text-transform: uppercase;
+      padding: .3rem .9rem; border-radius: 999px;
+      margin-top: .35rem;
+    }
+
+    /* Section titles */
+    .conf-section {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .conf-section:last-child { border-bottom: none; }
+    .conf-section__title {
+      font-family: var(--font-heading);
+      font-size: 1.05rem; font-weight: 600; color: var(--secondary);
+      margin-bottom: 1rem;
+    }
+
+    /* Detail rows */
+    .conf-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: .45rem 0;
+      font-size: .9rem; color: var(--text-light);
+      border-bottom: 1px solid rgba(224,213,197,.35);
+    }
+    .conf-row:last-child { border-bottom: none; }
+    .conf-row strong { color: var(--secondary); }
+    .conf-row.total {
+      font-size: 1.05rem; font-weight: 700;
+      color: var(--secondary);
+      border-top: 2px solid var(--border);
+      padding-top: .75rem; margin-top: .35rem;
+      border-bottom: none;
+    }
+    .conf-row.total strong { color: var(--primary-dark); font-size: 1.15rem; }
+
+    /* Items list */
+    .conf-item {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .55rem 0;
+      border-bottom: 1px solid rgba(224,213,197,.3);
+    }
+    .conf-item:last-child { border-bottom: none; }
+    .conf-item__img {
+      width: 48px; height: 48px; object-fit: cover;
+      border-radius: var(--radius-sm); background: var(--accent); flex-shrink: 0;
+    }
+    .conf-item__name  { font-size: .88rem; font-weight: 600; color: var(--secondary); }
+    .conf-item__meta  { font-size: .76rem; color: var(--text-light); margin-top: .1rem; }
+    .conf-item__price { margin-left: auto; font-size: .9rem; font-weight: 600; color: var(--primary-dark); white-space: nowrap; }
+
+    /* QR section */
+    .conf-qr {
+      text-align: center;
+    }
+    .conf-qr img {
+      width: 200px; height: 200px; object-fit: contain;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      margin: 0 auto .75rem; display: block;
+    }
+    .conf-amount {
+      display: inline-block;
+      background: rgba(200,169,110,.12);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .75rem 1.5rem;
+      font-family: var(--font-heading);
+      font-size: 1.6rem; font-weight: 700; color: var(--primary-dark);
+      margin: .75rem auto .5rem;
+    }
+    .conf-qr p { font-size: .85rem; color: var(--text-light); max-width: 320px; margin: 0 auto; }
+
+    /* Receipt upload */
+    .upload-label {
+      display: flex; flex-direction: column; align-items: center; gap: .5rem;
+      padding: 1.75rem 1rem;
+      border: 2px dashed var(--border); border-radius: var(--radius);
+      cursor: pointer; color: var(--text-light); text-align: center;
+      transition: border-color var(--transition), color var(--transition);
+    }
+    .upload-label:hover { border-color: var(--primary); color: var(--primary); }
+    .upload-icon { font-size: 1.75rem; }
+
+    /* Actions */
+    .conf-actions {
+      display: flex; gap: .75rem; flex-wrap: wrap; justify-content: center;
+    }
+    .btn-whatsapp {
+      background: #25d366; color: #fff;
+    }
+    .btn-whatsapp:hover { background: #1ebd5a; }
+
+    /* WhatsApp FAB */
+    .whatsapp-fab {
+      position: fixed; bottom: 1.75rem; right: 1.75rem; z-index: 1000;
+      width: 56px; height: 56px; background: #25d366; border-radius: 50%;
+      display: none; align-items: center; justify-content: center;
+      font-size: 1.6rem; box-shadow: 0 4px 18px rgba(37,211,102,.4);
+      text-decoration: none; transition: transform var(--transition);
+    }
+    .whatsapp-fab:hover { transform: scale(1.1); }
+  </style>
+</head>
+<body data-page="confirmacion">
+
+  <!-- Navbar -->
+  <nav class="navbar" role="navigation" aria-label="Navegación principal">
+    <div class="navbar__inner">
+      <a href="index.html" class="navbar__logo">
+        <img src="assets/gaia-logo.svg" alt="Gaia Bolivia" onerror="this.style.display='none'">
+        <span class="navbar__logo-text">Gaia <span>Bolivia</span></span>
+      </a>
+      <ul class="navbar__nav" role="list">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="tienda.html">Tienda</a></li>
+      </ul>
+      <div class="navbar__actions">
+        <a href="carrito.html" class="cart-btn" aria-label="Ver carrito">
+          🛒 <span class="badge" id="cart-badge" style="display:none">0</span>
+        </a>
+        <button class="hamburger" aria-label="Menú" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+  <div class="mobile-nav">
+    <a href="index.html">Inicio</a>
+    <a href="tienda.html">Tienda</a>
+    <a href="carrito.html">🛒 Carrito</a>
+  </div>
+
+  <main class="page-content">
+    <div class="container">
+      <div class="confirmation-wrap">
+
+        <!-- Steps -->
+        <div class="steps">
+          <div class="step done">
+            <div class="step__dot">✓</div>
+            <span class="step__label">Carrito</span>
+          </div>
+          <div class="step-line done"></div>
+          <div class="step done">
+            <div class="step__dot">✓</div>
+            <span class="step__label">Datos</span>
+          </div>
+          <div class="step-line done"></div>
+          <div class="step done">
+            <div class="step__dot">✓</div>
+            <span class="step__label">Pago</span>
+          </div>
+          <div class="step-line done"></div>
+          <div class="step active">
+            <div class="step__dot">4</div>
+            <span class="step__label">Confirmación</span>
+          </div>
+        </div>
+
+        <!-- Detalle del pedido (renderizado por JS) -->
+        <div id="order-detail">
+          <div class="spinner"></div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <a class="whatsapp-fab" href="#" data-whatsapp aria-label="WhatsApp">💬</a>
+
+  <script src="js/api.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

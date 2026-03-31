@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tienda — Gaia Bolivia Beauty</title>
+  <meta name="description" content="Catálogo de productos de belleza natural Gaia Bolivia.">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <style>
+    /* ── Page header ── */
+    .shop-header {
+      background: linear-gradient(135deg, var(--secondary) 0%, #3a2e1a 100%);
+      padding: 2.5rem 0 3rem;
+    }
+    .shop-header h1 { color: var(--white); margin-bottom: .3rem; }
+    .shop-header p  { color: var(--accent); font-size: .95rem; }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb {
+      display: flex; align-items: center; gap: .45rem; flex-wrap: wrap;
+      font-size: .82rem; color: var(--text-light);
+      padding: 1rem 0; border-bottom: 1px solid var(--border);
+      margin-bottom: 1.25rem;
+    }
+    .breadcrumb a { color: var(--primary); }
+    .breadcrumb__sep { color: var(--border); }
+
+    /* ── Shop layout ── */
+    .shop-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 2rem;
+      align-items: start;
+      padding: 1.5rem 0 4rem;
+    }
+    @media (max-width: 900px) {
+      .shop-layout { grid-template-columns: 1fr; }
+    }
+
+    /* ── Sidebar ── */
+    .shop-sidebar { position: sticky; top: calc(var(--navbar-h) + 1rem); }
+    .sidebar-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .sidebar-section {
+      padding: 1.2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-section:last-child { border-bottom: none; }
+    .sidebar-section__title {
+      font-size: .67rem; font-weight: 600;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: var(--text-light); margin-bottom: .85rem;
+    }
+
+    /* Search */
+    .sidebar-search { position: relative; }
+    .sidebar-search input { padding-left: 2.35rem; }
+    .sidebar-search::before {
+      content: '🔍'; position: absolute;
+      left: .8rem; top: 50%; transform: translateY(-50%);
+      font-size: .78rem; pointer-events: none;
+    }
+
+    /* Category list */
+    .cat-list {
+      display: flex; flex-direction: column; gap: .3rem;
+      max-height: 260px; overflow-y: auto; padding-right: .25rem;
+    }
+    .cat-list::-webkit-scrollbar { width: 4px; }
+    .cat-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .cat-list label {
+      display: flex; align-items: center; gap: .55rem;
+      font-size: .87rem; color: var(--text);
+      cursor: pointer; padding: .3rem .2rem;
+      border-radius: var(--radius-sm);
+      transition: color var(--transition);
+    }
+    .cat-list label:hover { color: var(--primary); }
+    .cat-list input[type=radio] {
+      accent-color: var(--primary);
+      width: 15px; height: 15px; flex-shrink: 0; cursor: pointer;
+    }
+    .cat-count { margin-left: auto; font-size: .72rem; color: var(--text-light); }
+
+    /* Mobile toggle */
+    .filter-toggle {
+      display: none; width: 100%;
+      padding: .75rem 1rem;
+      background: var(--white); border: 1.5px solid var(--border);
+      border-radius: var(--radius); font-size: .9rem; font-weight: 500;
+      color: var(--secondary); cursor: pointer;
+      align-items: center; justify-content: space-between;
+      margin-bottom: .75rem;
+    }
+    .filter-toggle__icon { transition: transform .25s; display: inline-block; }
+    .filter-toggle.open .filter-toggle__icon { transform: rotate(180deg); }
+    @media (max-width: 900px) {
+      .filter-toggle { display: flex; }
+      .shop-sidebar { position: static; }
+      .sidebar-card { display: none; }
+      .sidebar-card.open { display: block; margin-bottom: .75rem; }
+    }
+
+    /* ── Toolbar ── */
+    .shop-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: .75rem; flex-wrap: wrap; margin-bottom: 1.25rem;
+    }
+    .count-text { font-size: .85rem; color: var(--text-light); }
+    .count-text strong { color: var(--secondary); }
+
+    /* ── Numeric pagination ── */
+    .pagination {
+      display: flex; align-items: center; justify-content: center;
+      gap: .4rem; margin-top: 2.5rem; flex-wrap: wrap;
+    }
+    .page-btn {
+      min-width: 38px; height: 38px; padding: 0 .6rem;
+      border: 1.5px solid var(--border); border-radius: var(--radius);
+      background: var(--white); font-size: .85rem; font-weight: 500;
+      color: var(--text-light); cursor: pointer;
+      transition: all var(--transition);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: var(--font-body);
+    }
+    .page-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+    .page-btn.active {
+      background: var(--primary); border-color: var(--primary);
+      color: var(--white); pointer-events: none;
+    }
+    .page-btn:disabled { opacity: .35; pointer-events: none; }
+    .page-ellipsis { font-size: .85rem; color: var(--text-light); padding: 0 .2rem; }
+
+    /* ── Skeleton ── */
+    @keyframes shimmer {
+      0%   { background-position: -600px 0; }
+      100% { background-position:  600px 0; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg, #ede3d5 25%, #f5ede0 50%, #ede3d5 75%);
+      background-size: 600px 100%;
+      animation: shimmer 1.4s infinite linear;
+      border-radius: var(--radius);
+    }
+    .skeleton-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); overflow: hidden;
+    }
+    .skeleton-img  { height: 220px; border-radius: 0; }
+    .skeleton-body { padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: .65rem; }
+    .skeleton-line { height: 13px; }
+    .skeleton-line.short { width: 50%; }
+    .skeleton-line.price { width: 35%; height: 16px; }
+    .skeleton-btn  { height: 36px; border-radius: var(--radius); margin-top: .35rem; }
+
+    /* ── WhatsApp FAB ── */
+    .whatsapp-fab {
+      position: fixed; bottom: 1.75rem; right: 1.75rem; z-index: 1000;
+      width: 56px; height: 56px; background: #25d366; border-radius: 50%;
+      display: none; align-items: center; justify-content: center;
+      font-size: 1.6rem; box-shadow: 0 4px 18px rgba(37,211,102,.4);
+      text-decoration: none; transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .whatsapp-fab:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(37,211,102,.55); }
+  </style>
+</head>
+<body data-page="tienda">
+
+  <!-- Navbar -->
+  <nav class="navbar" role="navigation" aria-label="Navegación principal">
+    <div class="navbar__inner">
+      <a href="index.html" class="navbar__logo">
+        <img src="assets/gaia-logo.svg" alt="Gaia Bolivia" onerror="this.style.display='none'">
+        <span class="navbar__logo-text">Gaia <span>Bolivia</span></span>
+      </a>
+      <ul class="navbar__nav" role="list">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="tienda.html">Tienda</a></li>
+      </ul>
+      <div class="navbar__actions">
+        <a href="carrito.html" class="cart-btn" aria-label="Ver carrito">
+          🛒 <span class="badge" id="cart-badge" style="display:none">0</span>
+        </a>
+        <button class="hamburger" aria-label="Menú" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+  <div class="mobile-nav">
+    <a href="index.html">Inicio</a>
+    <a href="tienda.html">Tienda</a>
+    <a href="carrito.html">🛒 Carrito</a>
+  </div>
+
+  <main class="page-content">
+
+    <div class="shop-header">
+      <div class="container">
+        <h1>Nuestra Tienda</h1>
+        <p>Belleza natural para cada tipo de piel</p>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb" aria-label="Ruta de navegación">
+        <a href="index.html">Inicio</a>
+        <span class="breadcrumb__sep">›</span>
+        <a href="tienda.html">Tienda</a>
+        <span class="breadcrumb__sep" id="cat-sep" style="display:none">›</span>
+        <span id="breadcrumb-cat" style="color:var(--primary)"></span>
+      </nav>
+
+      <!-- Mobile filter toggle -->
+      <button class="filter-toggle" id="filter-toggle" aria-expanded="false">
+        <span>🔧 Filtros y búsqueda</span>
+        <span class="filter-toggle__icon">▼</span>
+      </button>
+
+      <div class="shop-layout">
+
+        <!-- ─── Sidebar ─── -->
+        <aside class="shop-sidebar" aria-label="Filtros">
+          <div class="sidebar-card" id="sidebar-card">
+
+            <!-- Búsqueda -->
+            <div class="sidebar-section">
+              <p class="sidebar-section__title">Buscar</p>
+              <div class="sidebar-search">
+                <input type="search" id="search-input" class="form-input"
+                  placeholder="Nombre del producto..." autocomplete="off">
+              </div>
+            </div>
+
+            <!-- Categorías -->
+            <div class="sidebar-section">
+              <p class="sidebar-section__title">Categoría</p>
+              <ul class="cat-list" id="category-list" role="radiogroup" aria-label="Filtrar por categoría">
+                <li>
+                  <label>
+                    <input type="radio" name="cat" value="" checked> Todas
+                  </label>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Ordenar -->
+            <div class="sidebar-section">
+              <p class="sidebar-section__title">Ordenar por</p>
+              <select id="sort-select" class="form-select" style="width:100%">
+                <option value="">Relevancia</option>
+                <option value="price_asc">Precio: menor a mayor</option>
+                <option value="price_desc">Precio: mayor a menor</option>
+                <option value="-id">Más nuevo</option>
+              </select>
+            </div>
+
+            <!-- Limpiar -->
+            <div class="sidebar-section">
+              <button class="btn btn-outline btn-full btn-sm" id="clear-filters">
+                ✕ Limpiar filtros
+              </button>
+            </div>
+
+          </div>
+        </aside>
+
+        <!-- ─── Main ─── -->
+        <div>
+          <div class="shop-toolbar">
+            <p class="count-text" id="products-count" aria-live="polite"></p>
+          </div>
+          <div class="product-grid" id="products-grid" aria-live="polite"></div>
+          <div id="pagination" aria-label="Paginación"></div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <span class="navbar__logo-text">Gaia <span style="color:var(--primary)">Bolivia</span></span>
+          <p>Productos de belleza natural boliviana.</p>
+        </div>
+        <div>
+          <p class="footer__heading">Navegación</p>
+          <ul class="footer__links">
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="tienda.html">Tienda</a></li>
+            <li><a href="carrito.html">Carrito</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer__heading">Contacto</p>
+          <ul class="footer__links">
+            <li><a href="#" data-whatsapp>💬 WhatsApp</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>© 2025 Gaia Bolivia Beauty. Todos los derechos reservados.</span>
+        <span>Hecho con ♥ en Bolivia</span>
+      </div>
+    </div>
+  </footer>
+
+  <a class="whatsapp-fab" href="#" data-whatsapp aria-label="Contactar por WhatsApp">💬</a>
+
+  <script src="js/api.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
