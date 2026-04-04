@@ -1,0 +1,10 @@
+{
+  "email": "gaia@bolivia.com",
+  "nombre": "Gaia",
+  "apellido": "Bolivia",
+  "telefono": "59162066644",
+  "ciudad": "santa_cruz",
+  "password": "gaia123",
+  "password2": "gaia123",
+  "rol": "vendedor"
+}
