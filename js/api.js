@@ -3,7 +3,7 @@
  * Todos los endpoints apuntan a /api/public/gaia-bolivia/
  */
 
-const API_BASE = 'http://localhost:8000/api/public/gaia-bolivia';
+const API_BASE = 'http://76.13.160.126/api/public/gaia-bolivia';
 
 /**
  * Wrapper interno de fetch con manejo de errores uniforme.

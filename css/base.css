@@ -3,15 +3,24 @@
 
 /* ── Variables ────────────────────────────────────────────────────────────── */
 :root {
-  --primary:       #c8a96e;
-  --primary-dark:  #9e7d4a;
-  --secondary:     #2d2d2d;
-  --accent:        #e8d5b0;
-  --text:          #1a1a1a;
-  --text-light:    #666666;
-  --bg:            #fafafa;
-  --white:         #ffffff;
-  --border:        #e0d5c5;
+  --color-primary:       #c78271;
+  --color-primary-dark:  #a5604f;
+  --color-primary-light: #e0a898;
+  --color-primary-pale:  #f5e6e2;
+
+  --color-bg:            #ffffff;
+  --color-bg-soft:       #fdf8f7;
+  --color-bg-section:    #faf3f1;
+
+  --color-text:          #2d1f1b;
+  --color-text-muted:    #8a6055;
+  --color-text-light:    #c4a098;
+
+  --color-border:        rgba(199,130,113,0.25);
+  --color-border-strong: rgba(199,130,113,0.55);
+
+  --color-white:         #ffffff;
+  --color-black:         #2d1f1b;
 
   --font-heading:  'Cormorant Garamond', Georgia, serif;
   --font-body:     'Inter', system-ui, sans-serif;

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nosotros — Gaia Bolivia</title>
+  <meta name="description" content="Conoce a Gaia Bolivia, tu tienda de moda favorita con tendencias semanales y envíos a toda Bolivia.">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <style>
+    /* ── Variables ────────────────────────────────────────────────────────────── */
+    :root {
+      --color-primary:       #c78271;
+      --color-primary-dark:  #a5604f;
+      --color-primary-light: #e0a898;
+      --color-primary-pale:  #f5e6e2;
+      --color-bg:            #ffffff;
+      --color-bg-soft:       #fdf8f7;
+      --color-text:          #2d1f1b;
+      --color-text-muted:    #8a6055;
+      --color-border:        rgba(199,130,113,0.25);
+    }
+
+    /* ── Hero ────────────────────────────────────────────────────────────────── */
+    .hero {
+      min-height: calc(100vh - var(--navbar-h));
+      display: flex; align-items: center;
+      background: linear-gradient(135deg, var(--color-bg-soft) 0%, var(--color-primary-pale) 100%);
+      padding: 5rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero__content {
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 300px; gap: 3rem; align-items: center;
+    }
+    @media (max-width: 768px) {
+      .hero__content { grid-template-columns: 1fr; gap: 2rem; text-align: center; }
+    }
+    .hero__text h1 {
+      font-size: clamp(3rem, 8vw, 5rem);
+      color: var(--color-text);
+      margin-bottom: 1rem;
+    }
+    .hero__text p {
+      font-size: 1.2rem;
+      color: var(--color-text-muted);
+      line-height: 1.6;
+    }
+    .hero__image img {
+      width: 100%; height: auto; border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(199,130,113,0.2);
+    }
+
+    /* ── Quiénes Somos ───────────────────────────────────────────────────────── */
+    .about-section {
+      padding: 5rem 0;
+      background: var(--color-bg);
+    }
+    .about-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+    }
+    @media (max-width: 768px) {
+      .about-grid { grid-template-columns: 1fr; gap: 2rem; }
+    }
+    .about-image img {
+      width: 100%; height: auto; border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(199,130,113,0.15);
+    }
+    .about-text h2 {
+      font-size: 2.5rem; color: var(--color-text);
+      margin-bottom: 1.5rem;
+    }
+    .about-text p {
+      font-size: 1.1rem; color: var(--color-text-muted);
+      line-height: 1.8; margin-bottom: 1rem;
+    }
+    .highlight {
+      color: var(--color-primary); font-weight: 600;
+    }
+
+    /* ── Valores ─────────────────────────────────────────────────────────────── */
+    .values-section {
+      padding: 5rem 0;
+      background: var(--color-primary-pale);
+    }
+    .values-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;
+    }
+    .value-card {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 16px;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .value-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(199,130,113,0.18);
+    }
+    .value-card__icon {
+      font-size: 3rem; margin-bottom: 1rem;
+    }
+    .value-card h3 {
+      font-size: 1.3rem; color: var(--color-text);
+      margin-bottom: 0.5rem;
+    }
+    .value-card p {
+      color: var(--color-text-muted);
+      line-height: 1.6;
+    }
+
+    /* ── CTA Banner ──────────────────────────────────────────────────────────── */
+    .cta-banner {
+      padding: 4rem 1.5rem;
+      background: var(--color-primary-pale);
+      text-align: center;
+    }
+    .cta-banner h2 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      color: var(--color-text);
+      margin-bottom: 2rem;
+    }
+    .cta-buttons {
+      display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+    }
+    .btn {
+      border-radius: 50px;
+    }
+  </style>
+</head>
+<body data-page="nosotros">
+
+  <!-- ── Navbar ── -->
+  <nav class="navbar" role="navigation" aria-label="Navegación principal">
+    <div class="navbar__inner">
+      <a href="index.html" class="navbar__logo">
+        <img src="https://python.innovatecsystelen.com/media/logo_image/LogoGaia.webp" alt="Gaia Bolivia" onerror="this.style.display='none'">
+        <span class="navbar__logo-text">Gaia <span>Bolivia</span></span>
+      </a>
+      <ul class="navbar__nav" role="list">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="tienda.html">Tienda</a></li>
+        <li><a href="nosotros.html" class="active">Nosotros</a></li>
+        <li><a href="contacto.html">Contacto</a></li>
+      </ul>
+      <div class="navbar__actions">
+        <a href="carrito.html" class="cart-btn" aria-label="Ver carrito">
+          🛒
+          <span class="badge" id="cart-badge" style="display:none">0</span>
+        </a>
+        <button class="hamburger" aria-label="Menú" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile nav -->
+  <div class="mobile-nav" role="navigation" aria-label="Menú móvil">
+    <a href="index.html">Inicio</a>
+    <a href="tienda.html">Tienda</a>
+    <a href="nosotros.html" class="active">Nosotros</a>
+    <a href="contacto.html">Contacto</a>
+    <a href="carrito.html">🛒 Carrito</a>
+  </div>
+
+  <main class="page-content">
+
+    <!-- ══ HERO ════════════════════════════════════════════════════════════════ -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero__content">
+          <div class="hero__text">
+            <h1>Somos Gaia Bolivia</h1>
+            <p>Tu tienda de moda favorita</p>
+          </div>
+          <div class="hero__image">
+            <img src="https://python.innovatecsystelen.com/media/profile_image/PerfilGaia.webp" alt="Gaia Bolivia">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ QUIÉNES SOMOS ═══════════════════════════════════════════════════════ -->
+    <section class="about-section">
+      <div class="container">
+        <div class="about-grid">
+          <div class="about-image">
+            <img src="https://python.innovatecsystelen.com/media/profile_image/PerfilGaia.webp" alt="Gaia Bolivia">
+          </div>
+          <div class="about-text">
+            <h2>Gaia Bolivia</h2>
+            <p>Desde básicos que combinan con todo hasta outfits completos para brillar. Actualizamos nuestras colecciones <span class="highlight">todas las semanas</span>. Hacemos envíos a domicilio y a <span class="highlight">toda Bolivia</span>.</p>
+            <p>Tu tienda de moda favorita donde siempre vas a encontrar lo que está en tendencia.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ VALORES ══════════════════════════════════════════════════════════════ -->
+    <section class="values-section">
+      <div class="container">
+        <div class="values-grid">
+          <div class="value-card">
+            <div class="value-card__icon">🛍️</div>
+            <h3>Tendencia</h3>
+            <p>Colecciones nuevas cada semana</p>
+          </div>
+          <div class="value-card">
+            <div class="value-card__icon">✨</div>
+            <h3>Calidad</h3>
+            <p>Piezas seleccionadas con cuidado</p>
+          </div>
+          <div class="value-card">
+            <div class="value-card__icon">🚚</div>
+            <h3>Envíos</h3>
+            <p>A domicilio y a toda Bolivia</p>
+          </div>
+          <div class="value-card">
+            <div class="value-card__icon">💬</div>
+            <h3>Atención</h3>
+            <p>Siempre disponibles para ayudarte</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ CTA BANNER ═══════════════════════════════════════════════════════════ -->
+    <section class="cta-banner">
+      <div class="container">
+        <h2>¿Lista para brillar?</h2>
+        <div class="cta-buttons">
+          <a href="tienda.html" class="btn btn-primary btn-lg">Ver Tienda</a>
+          <a href="contacto.html" class="btn btn-outline btn-lg">Contáctanos</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ══ FOOTER ════════════════════════════════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+
+        <!-- Marca -->
+        <div class="footer__brand">
+          <span class="navbar__logo-text">
+            Gaia <span style="color:var(--color-primary)">Bolivia</span>
+          </span>
+          <p>Productos de belleza natural boliviana. Cuidamos tu piel con el poder de la naturaleza.</p>
+          <div class="footer__social">
+            <a href="https://www.instagram.com/gaia.bolivia/" aria-label="Instagram">📸</a>
+            <a href="#" data-tiktok aria-label="TikTok">🎵</a>
+            <a href="#" data-facebook aria-label="Facebook">👍</a>
+          </div>
+        </div>
+
+        <!-- Links: Tienda / Nosotros -->
+        <div>
+          <p class="footer__heading">Tienda</p>
+          <ul class="footer__links">
+            <li><a href="tienda.html">Todos los productos</a></li>
+            <li><a href="carrito.html">Mi carrito</a></li>
+          </ul>
+          <p class="footer__heading" style="margin-top:1.5rem">Nosotros</p>
+          <ul class="footer__links">
+            <li><a href="nosotros.html">Quiénes somos</a></li>
+            <li><a href="contacto.html">Contacto</a></li>
+          </ul>
+        </div>
+
+        <!-- Contacto -->
+        <div>
+          <p class="footer__heading">Contacto</p>
+          <ul class="footer__links">
+            <li><a href="https://wa.me/59162066644">💬 WhatsApp</a></li>
+            <li><a href="https://www.instagram.com/gaia.bolivia/">📸 Instagram</a></li>
+            <li><a href="#" data-tiktok>🎵 TikTok</a></li>
+            <li><a href="#" data-facebook>👍 Facebook</a></li>
+          </ul>
+        </div>
+
+      </div>
+      <div class="footer__bottom">
+        <span>© 2025 Gaia Bolivia Beauty. Todos los derechos reservados.</span>
+        <span>Hecho con ♥ en Bolivia</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contacto — Gaia Bolivia</title>
+  <meta name="description" content="Contáctanos por WhatsApp, email o redes sociales. Estamos aquí para ayudarte con tu look perfecto.">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <style>
+    /* ── Variables ────────────────────────────────────────────────────────────── */
+    :root {
+      --color-primary:       #c78271;
+      --color-primary-dark:  #a5604f;
+      --color-primary-light: #e0a898;
+      --color-primary-pale:  #f5e6e2;
+      --color-bg:            #ffffff;
+      --color-bg-soft:       #fdf8f7;
+      --color-text:          #2d1f1b;
+      --color-text-muted:    #8a6055;
+      --color-border:        rgba(199,130,113,0.25);
+    }
+
+    /* ── Hero ────────────────────────────────────────────────────────────────── */
+    .hero {
+      padding: 3rem 1.5rem;
+      background: linear-gradient(135deg, var(--color-bg-soft) 0%, var(--color-primary-pale) 100%);
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      color: var(--color-text);
+      margin-bottom: 1rem;
+    }
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--color-text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ── Contact Layout ──────────────────────────────────────────────────────── */
+    .contact-section {
+      padding: 4rem 0;
+      background: var(--color-bg);
+    }
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .contact-grid { grid-template-columns: 1fr; gap: 3rem; }
+    }
+
+    /* ── Contact Cards ───────────────────────────────────────────────────────── */
+    .contact-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .contact-card {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-decoration: none;
+      color: inherit;
+      transition: transform var(--transition), border-color var(--transition);
+      display: block;
+    }
+    .contact-card:hover {
+      transform: translateX(5px);
+      border-color: var(--color-primary);
+    }
+    .contact-card__icon {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+    }
+    .contact-card h3 {
+      font-size: 1.1rem;
+      color: var(--color-text);
+      margin-bottom: 0.25rem;
+    }
+    .contact-card p {
+      color: var(--color-text-muted);
+      margin-bottom: 0.25rem;
+    }
+    .contact-card__sub {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+    }
+
+    /* ── Follow Section ──────────────────────────────────────────────────────── */
+    .follow-section {
+      margin-top: 2rem;
+      text-align: center;
+    }
+    .follow-section h3 {
+      font-size: 1.2rem;
+      color: var(--color-text);
+      margin-bottom: 1rem;
+    }
+    .btn-instagram {
+      background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+      color: var(--color-white);
+      border-radius: 50px;
+      padding: 0.75rem 1.5rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+      transition: transform var(--transition);
+    }
+    .btn-instagram:hover {
+      transform: scale(1.05);
+    }
+
+    /* ── Contact Form ────────────────────────────────────────────────────────── */
+    .contact-form {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 16px;
+      padding: 2rem;
+    }
+    .contact-form h2 {
+      font-size: 1.8rem;
+      color: var(--color-text);
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--color-text);
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    .form-input,
+    .form-select,
+    .form-textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-size: 0.95rem;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(199,130,113,0.2);
+    }
+    .form-textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+    .btn-submit {
+      width: 100%;
+      background: var(--color-primary);
+      color: var(--color-white);
+      border: none;
+      border-radius: 50px;
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background var(--transition), transform var(--transition);
+    }
+    .btn-submit:hover {
+      background: var(--color-primary-dark);
+      transform: translateY(-2px);
+    }
+
+    /* ── WhatsApp FAB ────────────────────────────────────────────────────────── */
+    .whatsapp-fab {
+      position: fixed;
+      bottom: 1.75rem;
+      right: 1.75rem;
+      z-index: 1000;
+      width: 60px;
+      height: 60px;
+      background: #25d366;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      box-shadow: 0 4px 18px rgba(37,211,102,0.4);
+      text-decoration: none;
+      color: var(--color-white);
+      animation: pulse 2s infinite;
+    }
+    .whatsapp-fab:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 24px rgba(37,211,102,0.6);
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 4px 18px rgba(37,211,102,0.4); }
+      50% { box-shadow: 0 4px 18px rgba(37,211,102,0.8); }
+      100% { box-shadow: 0 4px 18px rgba(37,211,102,0.4); }
+    }
+  </style>
+</head>
+<body data-page="contacto">
+
+  <!-- ── Navbar ── -->
+  <nav class="navbar" role="navigation" aria-label="Navegación principal">
+    <div class="navbar__inner">
+      <a href="index.html" class="navbar__logo">
+        <img src="https://python.innovatecsystelen.com/media/logo_image/LogoGaia.webp" alt="Gaia Bolivia" onerror="this.style.display='none'">
+        <span class="navbar__logo-text">Gaia <span>Bolivia</span></span>
+      </a>
+      <ul class="navbar__nav" role="list">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="tienda.html">Tienda</a></li>
+        <li><a href="nosotros.html">Nosotros</a></li>
+        <li><a href="contacto.html" class="active">Contacto</a></li>
+      </ul>
+      <div class="navbar__actions">
+        <a href="carrito.html" class="cart-btn" aria-label="Ver carrito">
+          🛒
+          <span class="badge" id="cart-badge" style="display:none">0</span>
+        </a>
+        <button class="hamburger" aria-label="Menú" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile nav -->
+  <div class="mobile-nav" role="navigation" aria-label="Menú móvil">
+    <a href="index.html">Inicio</a>
+    <a href="tienda.html">Tienda</a>
+    <a href="nosotros.html">Nosotros</a>
+    <a href="contacto.html" class="active">Contacto</a>
+    <a href="carrito.html">🛒 Carrito</a>
+  </div>
+
+  <main class="page-content">
+
+    <!-- ══ HERO ════════════════════════════════════════════════════════════════ -->
+    <section class="hero">
+      <div class="container">
+        <h1>Contáctanos</h1>
+        <p>Estamos aquí para ayudarte a encontrar tu look perfecto</p>
+      </div>
+    </section>
+
+    <!-- ══ CONTACT SECTION ═════════════════════════════════════════════════════ -->
+    <section class="contact-section">
+      <div class="container">
+        <div class="contact-grid">
+
+          <!-- Contact Cards -->
+          <div class="contact-cards">
+            <a href="https://wa.me/59162066644" target="_blank" class="contact-card">
+              <div class="contact-card__icon">💬</div>
+              <h3>WhatsApp Principal</h3>
+              <p>+591 62066644</p>
+              <div class="contact-card__sub">Respuesta rápida · Lun–Sáb 9am–8pm</div>
+            </a>
+
+            <a href="https://wa.me/59178591454" target="_blank" class="contact-card">
+              <div class="contact-card__icon">📱</div>
+              <h3>WhatsApp Alternativo</h3>
+              <p>+591 78591454</p>
+              <div class="contact-card__sub">Disponible para pedidos y consultas</div>
+            </a>
+
+            <a href="mailto:Lilianamelendre@gmail.com" class="contact-card">
+              <div class="contact-card__icon">✉️</div>
+              <h3>Correo electrónico</h3>
+              <p>Lilianamelendre@gmail.com</p>
+              <div class="contact-card__sub">Respuesta en menos de 24 horas</div>
+            </a>
+
+            <div class="contact-card">
+              <div class="contact-card__icon">📍</div>
+              <h3>Ubicación</h3>
+              <p>Santa Cruz de la Sierra, Bolivia</p>
+              <div class="contact-card__sub">Envíos a domicilio y a toda Bolivia 🇧🇴</div>
+            </div>
+
+            <!-- Follow Section -->
+            <div class="follow-section">
+              <h3>Síguenos</h3>
+              <a href="https://www.instagram.com/gaia.bolivia/" target="_blank" class="btn-instagram">
+                📸 Instagram
+              </a>
+            </div>
+          </div>
+
+          <!-- Contact Form -->
+          <div class="contact-form">
+            <h2>Escríbenos</h2>
+            <form id="contact-form">
+              <div class="form-group">
+                <label for="name" class="form-label">Nombre completo *</label>
+                <input type="text" id="name" class="form-input" required>
+              </div>
+
+              <div class="form-group">
+                <label for="phone" class="form-label">WhatsApp / Teléfono</label>
+                <input type="tel" id="phone" class="form-input" placeholder="Ej: +591 7XXXXXXX">
+              </div>
+
+              <div class="form-group">
+                <label for="subject" class="form-label">¿En qué te ayudamos?</label>
+                <select id="subject" class="form-select">
+                  <option value="Consulta sobre un producto">Consulta sobre un producto</option>
+                  <option value="Información de envíos">Información de envíos</option>
+                  <option value="Estado de mi pedido">Estado de mi pedido</option>
+                  <option value="Devoluciones y cambios">Devoluciones y cambios</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="message" class="form-label">Mensaje *</label>
+                <textarea id="message" class="form-textarea" rows="5" required placeholder="Cuéntanos cómo podemos ayudarte..."></textarea>
+              </div>
+
+              <button type="button" class="btn-submit" onclick="sendWhatsApp()">
+                📱 Enviar por WhatsApp
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ══ FOOTER ════════════════════════════════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+
+        <!-- Marca -->
+        <div class="footer__brand">
+          <span class="navbar__logo-text">
+            Gaia <span style="color:var(--color-primary)">Bolivia</span>
+          </span>
+          <p>Productos de belleza natural boliviana. Cuidamos tu piel con el poder de la naturaleza.</p>
+          <div class="footer__social">
+            <a href="https://www.instagram.com/gaia.bolivia/" aria-label="Instagram">📸</a>
+            <a href="#" data-tiktok aria-label="TikTok">🎵</a>
+            <a href="#" data-facebook aria-label="Facebook">👍</a>
+          </div>
+        </div>
+
+        <!-- Links: Tienda / Nosotros -->
+        <div>
+          <p class="footer__heading">Tienda</p>
+          <ul class="footer__links">
+            <li><a href="tienda.html">Todos los productos</a></li>
+            <li><a href="carrito.html">Mi carrito</a></li>
+          </ul>
+          <p class="footer__heading" style="margin-top:1.5rem">Nosotros</p>
+          <ul class="footer__links">
+            <li><a href="nosotros.html">Quiénes somos</a></li>
+            <li><a href="contacto.html">Contacto</a></li>
+          </ul>
+        </div>
+
+        <!-- Contacto -->
+        <div>
+          <p class="footer__heading">Contacto</p>
+          <ul class="footer__links">
+            <li><a href="https://wa.me/59162066644">💬 WhatsApp</a></li>
+            <li><a href="https://www.instagram.com/gaia.bolivia/">📸 Instagram</a></li>
+            <li><a href="#" data-tiktok>🎵 TikTok</a></li>
+            <li><a href="#" data-facebook>👍 Facebook</a></li>
+          </ul>
+        </div>
+
+      </div>
+      <div class="footer__bottom">
+        <span>© 2025 Gaia Bolivia Beauty. Todos los derechos reservados.</span>
+        <span>Hecho con ♥ en Bolivia</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- WhatsApp FAB -->
+  <a href="https://wa.me/59162066644" target="_blank" class="whatsapp-fab" aria-label="Contactar por WhatsApp">
+    💬
+  </a>
+
+  <script>
+    function sendWhatsApp() {
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value;
+      const subject = document.getElementById('subject').value;
+      const message = document.getElementById('message').value.trim();
+
+      if (!name || !message) {
+        showToast('Por favor completa nombre y mensaje', 'error');
+        return;
+      }
+
+      const text = `*Hola Gaia Bolivia! 👋*
+
+*Nombre:* ${name}
+*Teléfono:* ${phone}
+*Motivo:* ${subject}
+
+*Mensaje:* ${message}`;
+
+      const encoded = encodeURIComponent(text);
+      window.open(`https://wa.me/59162066644?text=${encoded}`, '_blank');
+      showToast('Mensaje enviado por WhatsApp', 'success');
+      document.getElementById('contact-form').reset();
+    }
+  </script>
+
+  <script src="js/api.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

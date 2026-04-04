@@ -11,11 +11,11 @@
   <style>
     /* ── Page header ── */
     .shop-header {
-      background: linear-gradient(135deg, var(--secondary) 0%, #3a2e1a 100%);
+      background: linear-gradient(135deg, var(--color-bg-soft) 0%, var(--color-primary-pale) 100%);
       padding: 2.5rem 0 3rem;
     }
-    .shop-header h1 { color: var(--white); margin-bottom: .3rem; }
-    .shop-header p  { color: var(--accent); font-size: .95rem; }
+    .shop-header h1 { color: var(--color-text); margin-bottom: .3rem; }
+    .shop-header p  { color: var(--color-primary); font-size: .95rem; }
 
     /* ── Breadcrumb ── */
     .breadcrumb {
@@ -181,7 +181,9 @@
       </a>
       <ul class="navbar__nav" role="list">
         <li><a href="index.html">Inicio</a></li>
-        <li><a href="tienda.html">Tienda</a></li>
+        <li><a href="tienda.html" class="active">Tienda</a></li>
+        <li><a href="nosotros.html">Nosotros</a></li>
+        <li><a href="contacto.html">Contacto</a></li>
       </ul>
       <div class="navbar__actions">
         <a href="carrito.html" class="cart-btn" aria-label="Ver carrito">
@@ -290,7 +292,7 @@
     <div class="container">
       <div class="footer__grid">
         <div class="footer__brand">
-          <span class="navbar__logo-text">Gaia <span style="color:var(--primary)">Bolivia</span></span>
+          <span class="navbar__logo-text">Gaia <span style="color:var(--color-primary)">Bolivia</span></span>
           <p>Productos de belleza natural boliviana.</p>
         </div>
         <div>
