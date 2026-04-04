@@ -423,6 +423,14 @@ function initCheckout() {
   const form    = document.querySelector('#checkout-form');
   if (!form) return;
 
+  let storeData = null;
+  try {
+    storeData = await GaiaAPI.getStore();
+    window._storeCache = storeData;
+  } catch (_) {
+    storeData = window._storeCache || null;
+  }
+
   const panel1  = document.querySelector('#step-panel-1');
   const panel2  = document.querySelector('#step-panel-2');
   const btnNext = document.querySelector('#btn-next');
@@ -478,11 +486,20 @@ function initCheckout() {
       radio.closest('.payment-card')?.classList.add('selected');
 
       const qrPreview = document.querySelector('#payment-qr-preview');
+      const qrPreviewImg = document.querySelector('#qr-preview-img');
+      const qrInstructions = document.querySelector('#qr-preview-instructions');
       const qrName    = document.querySelector('#qr-method-name');
+      const showQR = ['tigo_money', 'banco_union'].includes(radio.value);
       if (qrPreview) {
-        const showQR = ['tigo_money', 'banco_union'].includes(radio.value);
         qrPreview.style.display = showQR ? '' : 'none';
-        if (qrName) qrName.textContent = radio.value === 'tigo_money' ? 'Tigo Money' : 'Banco Unión';
+      }
+      if (qrName) qrName.textContent = radio.value === 'tigo_money' ? 'Tigo Money' : 'Banco Unión';
+      const qrMethod = storeData?.payment_methods?.find(method => method.type === 'qr');
+      if (qrPreviewImg) {
+        qrPreviewImg.src = qrMethod?.qr_image || 'https://placehold.co/200x200/e8d5b0/9e7d4a?text=QR+Pago';
+      }
+      if (qrInstructions) {
+        qrInstructions.textContent = qrMethod?.instructions || 'El QR de pago definitivo se generará al confirmar tu pedido.';
       }
     });
   });
