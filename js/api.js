@@ -8,7 +8,7 @@
  */
 
 // Configura el slug del vendedor aquí o en window.VENDOR_SLUG antes de cargar este script
-const VENDOR_SLUG = (typeof window !== 'undefined' && window.VENDOR_SLUG) || 'gaia-bolivia';
+const VENDOR_SLUG = (typeof window !== 'undefined' && window.VENDOR_SLUG) || 'gaia-beauty-bolivia';
 const API_BASE = `http://76.13.160.126/api/public/${VENDOR_SLUG}`;
 
 /**
