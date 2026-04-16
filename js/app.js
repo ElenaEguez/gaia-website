@@ -414,7 +414,7 @@ function initCarrito() {
 }
 
 /** CHECKOUT (checkout.html) */
-function initCheckout() {
+async function initCheckout() {
   const items = GaiaCart.getItems();
   if (!items.length) { location.href = 'carrito.html'; return; }
 
@@ -862,10 +862,15 @@ window.zoomImg = function(src, alt) {
   if (!src) return;
   const overlay = document.createElement('div');
   overlay.className = 'img-zoom-overlay';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-label', 'Imagen ampliada');
   overlay.innerHTML = `
     <span class="img-zoom-overlay__close" onclick="this.parentElement.remove()" aria-label="Cerrar">✕</span>
-    <img src="${src}" alt="${alt || ''}">`;
+    <img src="${src}" alt="${alt || ''}" style="max-width:min(92vw,720px);max-height:85vh;object-fit:contain;border-radius:var(--radius,8px)">`;
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  // Cerrar con Escape
+  const onKey = e => { if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', onKey); } };
+  document.addEventListener('keydown', onKey);
   document.body.appendChild(overlay);
 };
 
@@ -1043,6 +1048,21 @@ function validateCheckoutForm(form) {
   return ok;
 }
 
+function _statusBadgeHtml(status) {
+  const map = {
+    pending:   { label: 'Pendiente',        color: '#e65c00', bg: 'rgba(230,92,0,.1)' },
+    confirmed: { label: 'Confirmado',        color: '#1976d2', bg: 'rgba(25,118,210,.1)' },
+    delivered: { label: 'En camino',         color: '#7b1fa2', bg: 'rgba(123,31,162,.1)' },
+    received:  { label: 'Recibido ✓',        color: '#2e7d32', bg: 'rgba(46,125,50,.1)' },
+    cancelled: { label: 'Cancelado',         color: '#c62828', bg: 'rgba(198,40,40,.1)' },
+  };
+  const s = map[status] || { label: status || 'Pendiente', color: '#666', bg: '#f5f5f5' };
+  return `<span style="
+    display:inline-block;padding:.25rem .85rem;border-radius:999px;font-size:.78rem;font-weight:700;
+    color:${s.color};background:${s.bg};letter-spacing:.05em;text-transform:uppercase;margin-top:.4rem
+  ">${s.label}</span>`;
+}
+
 function renderOrderConfirmation(order, container) {
   if (!container) return;
 
@@ -1050,15 +1070,25 @@ function renderOrderConfirmation(order, container) {
   const waStore    = window._storeCache?.whatsapp?.replace(/\D/g, '');
   const waMsg      = encodeURIComponent(`Hola Gaia Bolivia! Mi pedido #${order.id} ya está pagado ✅`);
   const waUrl      = waStore ? `https://wa.me/${waStore}?text=${waMsg}` : `#`;
+  const status     = order.status || 'pending';
+
+  // Botones de acción según estado del pedido
+  const canCancel   = ['pending', 'confirmed'].includes(status);
+  const canReceive  = ['confirmed', 'delivered'].includes(status);
 
   container.innerHTML = `
     <div class="conf-card">
 
       <!-- ── Header ── -->
       <div class="conf-card__header">
-        <div class="conf-icon">✅</div>
-        <h2>¡Pedido recibido, ${order.customer_name?.split(' ')[0] || ''}!</h2>
-        <span class="order-id">Pedido #${order.id} · ${order.status_display || 'Pendiente'}</span>
+        <div class="conf-icon">${status === 'cancelled' ? '❌' : status === 'received' ? '🎉' : '✅'}</div>
+        <h2>${status === 'cancelled'
+          ? 'Pedido cancelado'
+          : status === 'received'
+          ? `¡Gracias, ${order.customer_name?.split(' ')[0] || ''}!`
+          : `¡Pedido recibido, ${order.customer_name?.split(' ')[0] || ''}!`}</h2>
+        <span class="order-id">Pedido #${order.id}</span>
+        ${_statusBadgeHtml(status)}
       </div>
 
       <!-- ── Detalles ── -->
@@ -1066,16 +1096,17 @@ function renderOrderConfirmation(order, container) {
         <p class="conf-section__title">Detalles del pedido</p>
         <div class="conf-row"><span>Cliente</span><strong>${order.customer_name}</strong></div>
         <div class="conf-row"><span>Teléfono</span><strong>${order.customer_phone}</strong></div>
-        <div class="conf-row"><span>Entrega</span><strong>${order.delivery_method_display}</strong></div>
-        <div class="conf-row"><span>Pago</span><strong>${order.payment_method_display}</strong></div>
+        <div class="conf-row"><span>Entrega</span><strong>${order.delivery_method_display || order.delivery_method}</strong></div>
+        <div class="conf-row"><span>Pago</span><strong>${order.payment_method_display || order.payment_method}</strong></div>
         ${order.customer_address ? `<div class="conf-row"><span>Dirección</span><strong>${order.customer_address}</strong></div>` : ''}
+        ${order.notes ? `<div class="conf-row"><span>Notas</span><strong>${order.notes}</strong></div>` : ''}
         <div class="conf-row total"><span>Total a pagar</span><strong>${formatPrice(order.total_amount)}</strong></div>
       </div>
 
       <!-- ── Productos ── -->
       ${orderItems.length ? `
         <div class="conf-section">
-          <p class="conf-section__title">Productos ordenados</p>
+          <p class="conf-section__title">Productos del pedido</p>
           ${orderItems.map(item => `
             <div class="conf-item">
               <img class="conf-item__img"
@@ -1085,7 +1116,7 @@ function renderOrderConfirmation(order, container) {
                 <p class="conf-item__name">${item.product_name || item.name}</p>
                 <p class="conf-item__meta">
                   ${item.variant_label ? `${item.variant_label} · ` : ''}
-                  Cantidad: ${item.quantity}
+                  Cantidad: ${item.quantity} · ${formatPrice(item.unit_price || item.price)} c/u
                 </p>
               </div>
               <span class="conf-item__price">${formatPrice((item.unit_price || item.price) * item.quantity)}</span>
@@ -1093,12 +1124,12 @@ function renderOrderConfirmation(order, container) {
         </div>` : ''}
 
       <!-- ── Instrucciones de pago / QR ── -->
-      ${order.qr_image || order.payment_method !== 'efectivo' ? `
+      ${status !== 'cancelled' ? (order.qr_image || order.payment_method !== 'efectivo' ? `
         <div class="conf-section conf-qr">
           <p class="conf-section__title">Instrucciones de pago</p>
           ${order.qr_image ? `
             <img src="${order.qr_image}" alt="QR de pago">
-            <p>Escanea el QR con tu app de <strong>${order.payment_method_display}</strong></p>` : ''}
+            <p>Escanea el QR con tu app de <strong>${order.payment_method_display || order.payment_method}</strong></p>` : ''}
           <div class="conf-amount">${formatPrice(order.total_amount)}</div>
           <p style="margin-top:.5rem">
             Transfiere el monto exacto y luego sube tu comprobante.<br>
@@ -1108,54 +1139,124 @@ function renderOrderConfirmation(order, container) {
         <div class="conf-section" style="text-align:center">
           <p class="conf-section__title">Pago en efectivo</p>
           <p>Pagarás <strong>${formatPrice(order.total_amount)}</strong> al recoger tu pedido.</p>
-        </div>`}
+        </div>`) : ''}
 
-      <!-- ── Subir comprobante ── -->
-      ${order.payment_method !== 'efectivo' ? `
+      <!-- ── Comprobante de pago ── -->
+      ${order.payment_method !== 'efectivo' && status !== 'cancelled' ? `
         <div class="conf-section" id="receipt-upload-section">
-          <p class="conf-section__title">📎 Subir comprobante de pago</p>
-          ${order.payment_receipt
-            ? `<p style="color:#4caf50;font-weight:600">✓ Comprobante ya enviado — te contactaremos pronto.</p>`
-            : `<div id="upload-area">
-                <input type="file" id="receipt-file" accept="image/*" class="sr-only">
-                <label for="receipt-file" class="upload-label">
-                  <span class="upload-icon">📎</span>
-                  <span id="upload-text">Seleccionar imagen del comprobante</span>
-                </label>
-                <button class="btn btn-primary btn-full mt-2" id="upload-btn" disabled>
-                  Enviar comprobante
-                </button>
-              </div>`}
+          <p class="conf-section__title">📎 Comprobante de pago</p>
+          ${order.payment_receipt ? `
+            <div style="text-align:center">
+              <p style="color:#2e7d32;font-weight:600;margin-bottom:.75rem">✓ Comprobante enviado — te contactaremos pronto.</p>
+              <a href="${order.payment_receipt}" target="_blank" rel="noopener"
+                style="display:inline-block;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;max-width:280px">
+                <img src="${order.payment_receipt}" alt="Comprobante de pago"
+                  style="width:100%;max-height:260px;object-fit:contain;display:block"
+                  onerror="this.parentElement.innerHTML='<p style=padding:.75rem>Ver comprobante →</p>'">
+              </a>
+              <p style="font-size:.78rem;color:var(--text-light);margin-top:.5rem">Toca la imagen para ampliar</p>
+            </div>` : `
+            <div id="upload-area">
+              <input type="file" id="receipt-file" accept="image/*" class="sr-only">
+              <label for="receipt-file" class="upload-label">
+                <span class="upload-icon">📎</span>
+                <span id="upload-text">Seleccionar imagen del comprobante</span>
+              </label>
+              <div id="receipt-preview" style="display:none;text-align:center;margin:.75rem 0">
+                <img id="receipt-preview-img" style="max-width:100%;max-height:220px;object-fit:contain;
+                  border:1px solid var(--border);border-radius:var(--radius)">
+              </div>
+              <button class="btn btn-primary btn-full mt-2" id="upload-btn" disabled>
+                Enviar comprobante
+              </button>
+            </div>`}
         </div>` : ''}
 
-      <!-- ── Acciones ── -->
+      <!-- ── Acciones de estado ── -->
+      ${canCancel || canReceive ? `
+        <div class="conf-section">
+          <p class="conf-section__title">Acciones del pedido</p>
+          <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+            ${canReceive ? `
+              <button class="btn btn-primary" id="btn-confirm-received" onclick="handleConfirmReceived(${order.id})">
+                ✅ Confirmar que lo recibí
+              </button>` : ''}
+            ${canCancel ? `
+              <button class="btn btn-outline" id="btn-cancel-order"
+                style="border-color:#c62828;color:#c62828"
+                onclick="handleCancelOrder(${order.id})">
+                ✕ Cancelar pedido
+              </button>` : ''}
+          </div>
+          ${canReceive ? '<p style="font-size:.78rem;color:var(--text-light);margin-top:.5rem">Presiona este botón una vez que hayas recibido tus productos.</p>' : ''}
+          ${canCancel && !canReceive ? '<p style="font-size:.78rem;color:var(--text-light);margin-top:.5rem">Solo puedes cancelar mientras el pedido no haya sido enviado.</p>' : ''}
+        </div>` : ''}
+
+      <!-- ── Acciones de navegación ── -->
       <div class="conf-section">
         <div class="conf-actions">
           <a href="${waUrl}" target="_blank" rel="noopener" class="btn btn-lg btn-whatsapp">
             💬 Consultar por WhatsApp
           </a>
-          <a href="tienda.html" class="btn btn-outline">Seguir comprando</a>
-          <a href="index.html" class="btn btn-ghost">Ir al inicio</a>
+          <button class="btn btn-outline" onclick="window.print()">🖨️ Imprimir</button>
+          <a href="tienda.html" class="btn btn-ghost">Seguir comprando</a>
         </div>
-        <p style="font-size:.78rem;color:var(--text-light);text-align:center;margin-top:.75rem">
-          El mensaje que se enviará: <em>"Hola Gaia Bolivia! Mi pedido #${order.id} ya está pagado ✅"</em>
-        </p>
       </div>
 
     </div>`;
 }
 
+window.handleConfirmReceived = async function(orderId) {
+  const btn = document.querySelector('#btn-confirm-received');
+  if (btn) { btn.disabled = true; btn.textContent = 'Procesando...'; }
+  try {
+    await GaiaAPI.confirmReceived(orderId);
+    showToast('¡Pedido confirmado como recibido!', 'success');
+    // Recargar para mostrar estado actualizado
+    setTimeout(() => location.reload(), 1200);
+  } catch (err) {
+    showToast(err.message || 'No se pudo confirmar. Intenta de nuevo.', 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '✅ Confirmar que lo recibí'; }
+  }
+};
+
+window.handleCancelOrder = async function(orderId) {
+  if (!confirm('¿Estás seguro de que deseas cancelar este pedido?')) return;
+  const btn = document.querySelector('#btn-cancel-order');
+  if (btn) { btn.disabled = true; btn.textContent = 'Cancelando...'; }
+  try {
+    await GaiaAPI.cancelOrder(orderId);
+    showToast('Pedido cancelado.', 'default');
+    setTimeout(() => location.reload(), 1200);
+  } catch (err) {
+    showToast(err.message || 'No se pudo cancelar. Intenta de nuevo.', 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '✕ Cancelar pedido'; }
+  }
+};
+
 function initReceiptUpload(orderId) {
-  const fileInput = document.querySelector('#receipt-file');
-  const uploadBtn = document.querySelector('#upload-btn');
-  const uploadText= document.querySelector('#upload-text');
+  const fileInput   = document.querySelector('#receipt-file');
+  const uploadBtn   = document.querySelector('#upload-btn');
+  const uploadText  = document.querySelector('#upload-text');
+  const previewWrap = document.querySelector('#receipt-preview');
+  const previewImg  = document.querySelector('#receipt-preview-img');
 
   if (!fileInput || !uploadBtn) return;
 
   fileInput.addEventListener('change', () => {
-    if (fileInput.files[0]) {
-      uploadText.textContent = fileInput.files[0].name;
-      uploadBtn.disabled = false;
+    const file = fileInput.files[0];
+    if (!file) return;
+    uploadText.textContent = file.name;
+    uploadBtn.disabled = false;
+
+    // Mostrar preview de la imagen seleccionada
+    if (previewWrap && previewImg) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        previewImg.src = e.target.result;
+        previewWrap.style.display = '';
+      };
+      reader.readAsDataURL(file);
     }
   });
 
@@ -1164,14 +1265,26 @@ function initReceiptUpload(orderId) {
     if (!file) return;
 
     uploadBtn.disabled = true;
-    uploadBtn.textContent = 'Enviando...';
+    uploadBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:.5rem"><span class="spinner" style="width:16px;height:16px;margin:0;border-width:2px;border-color:rgba(255,255,255,.3);border-top-color:#fff"></span> Enviando...</span>';
 
     try {
-      await GaiaAPI.uploadReceipt(orderId, file);
+      const updated = await GaiaAPI.uploadReceipt(orderId, file);
       showToast('Comprobante enviado correctamente.', 'success');
-      uploadBtn.textContent = '✓ Enviado';
-      uploadText.textContent = 'Comprobante recibido — te contactaremos pronto.';
-      uploadBtn.style.background = '#4caf50';
+
+      // Reemplazar el área de upload con el comprobante confirmado
+      const uploadArea = document.querySelector('#upload-area');
+      if (uploadArea) {
+        const receiptUrl = updated?.payment_receipt || (previewImg?.src) || '';
+        uploadArea.innerHTML = `
+          <p style="color:#2e7d32;font-weight:600;margin-bottom:.75rem">✓ Comprobante enviado — te contactaremos pronto.</p>
+          ${receiptUrl ? `
+            <a href="${receiptUrl}" target="_blank" rel="noopener"
+              style="display:inline-block;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;max-width:280px">
+              <img src="${receiptUrl}" alt="Comprobante de pago"
+                style="width:100%;max-height:260px;object-fit:contain;display:block">
+            </a>
+            <p style="font-size:.78rem;color:var(--text-light);margin-top:.5rem">Toca la imagen para ampliar</p>` : ''}`;
+      }
     } catch (err) {
       showToast(err.message, 'error');
       uploadBtn.disabled = false;
