@@ -8,7 +8,8 @@
  */
 
 const VENDOR_SLUG = 'gaia-bolivia';
-const API_BASE = `/api/public/${VENDOR_SLUG}`;
+const PUBLIC_API_ORIGIN = 'https://innovatecsystelen.com';
+const API_BASE = `${PUBLIC_API_ORIGIN}/api/public/${VENDOR_SLUG}`;
 
 /**
  * Wrapper interno de fetch con manejo de errores uniforme.
