@@ -19,8 +19,14 @@ const API_BASE = `${PUBLIC_API_ORIGIN}/api/public/${VENDOR_SLUG}`;
  */
 async function _request(url, options = {}) {
   try {
+    const method = (options.method || 'GET').toUpperCase();
+    const headers = { ...(options.headers || {}) };
+    // Evita preflight innecesario en GET/HEAD cross-origin.
+    if (!['GET', 'HEAD'].includes(method) && !(options.body instanceof FormData) && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
     const res = await fetch(url, {
-      headers: { 'Content-Type': 'application/json', ...options.headers },
+      headers,
       ...options,
     });
 

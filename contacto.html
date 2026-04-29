@@ -5,22 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Contacto — Gaia Bolivia</title>
   <meta name="description" content="Contáctanos por WhatsApp, email o redes sociales. Estamos aquí para ayudarte con tu look perfecto.">
+  <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/header.css">
+  <link rel="stylesheet" href="css/products.css">
   <style>
-    /* ── Variables ────────────────────────────────────────────────────────────── */
-    :root {
-      --color-primary:       #c78271;
-      --color-primary-dark:  #a5604f;
-      --color-primary-light: #e0a898;
-      --color-primary-pale:  #f5e6e2;
-      --color-bg:            #ffffff;
-      --color-bg-soft:       #fdf8f7;
-      --color-text:          #2d1f1b;
-      --color-text-muted:    #8a6055;
-      --color-border:        rgba(199,130,113,0.25);
-    }
+    .whatsapp-fab { display: flex !important; }
 
     /* ── Hero ────────────────────────────────────────────────────────────────── */
     .hero {
@@ -214,41 +206,55 @@
 </head>
 <body data-page="contacto">
 
-  <!-- ── Navbar ── -->
-  <nav class="navbar" role="navigation" aria-label="Navegación principal">
-    <div class="navbar__inner">
-      <a href="index.html" class="navbar__logo">
-        <img src="https://python.innovatecsystelen.com/media/logo_image/LogoGaia.webp" alt="Gaia Bolivia" onerror="this.style.display='none'">
-        <span class="navbar__logo-text">Gaia <span>Bolivia</span></span>
+  <!-- ── ANNOUNCEMENT BAR ── -->
+  <div class="announcement-bar">
+    Envíos a todo Bolivia &nbsp;·&nbsp; Paga con QR &nbsp;·&nbsp;
+    <a href="https://wa.me/59162066644" target="_blank" rel="noopener">Escríbenos por WhatsApp</a>
+  </div>
+
+  <!-- ── HEADER ── -->
+  <header class="site-header" id="site-header" role="banner">
+    <div class="header-inner">
+      <a href="index.html" class="site-logo" aria-label="Gaia Bolivia — Inicio">
+        <img src="img/logo.svg" alt="Gaia Bolivia" class="site-logo__img"
+             onerror="this.onerror=null;this.src='img/logo.svg'">
       </a>
-      <ul class="navbar__nav" role="list">
-        <li><a href="index.html">Inicio</a></li>
-        <li><a href="tienda.html">Tienda</a></li>
-        <li><a href="nosotros.html">Nosotros</a></li>
-        <li><a href="contacto.html" class="active">Contacto</a></li>
+      <ul class="main-nav" id="main-nav" role="list">
+        <li class="nav-item has-dropdown">
+          <a href="tienda.html" class="nav-link">Tienda <span class="chevron">▾</span></a>
+          <ul class="dropdown-menu" role="list">
+            <li><a href="tienda.html">Ver Todo</a></li>
+            <li><a href="tienda.html?category=vestidos">Vestidos</a></li>
+            <li><a href="tienda.html?category=blusas">Blusas &amp; Tops</a></li>
+            <li><a href="tienda.html?category=pantalones">Pantalones</a></li>
+            <li><a href="tienda.html?category=faldas">Faldas</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="tienda.html?category=vestidos" class="nav-link">Vestidos</a></li>
+        <li class="nav-item"><a href="nosotros.html" class="nav-link">Nosotros</a></li>
+        <li class="nav-item"><a href="contacto.html" class="nav-link active">Contacto</a></li>
       </ul>
-      <div class="navbar__actions">
-        <a href="carrito.html" class="cart-btn" aria-label="Ver carrito">
-          🛒
-          <span class="badge" id="cart-badge" style="display:none">0</span>
+      <div class="header-actions">
+        <button class="btn-icon btn-search" aria-label="Buscar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+        </button>
+        <a href="carrito.html" class="btn-icon" aria-label="Ver carrito" style="position:relative;text-decoration:none;color:inherit">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+          <span class="cart-count" id="cart-count" data-count="0">0</span>
         </a>
-        <button class="hamburger" aria-label="Menú" aria-expanded="false">
+        <button class="btn-menu" id="btn-menu" aria-label="Abrir menú" aria-expanded="false">
           <span></span><span></span><span></span>
         </button>
       </div>
     </div>
-  </nav>
+    <div class="search-bar" id="search-bar" role="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="flex-shrink:0;color:var(--color-text-muted)"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+      <input id="search-input" type="text" placeholder="Buscar productos..." autocomplete="off" aria-label="Buscar">
+      <button id="search-close" aria-label="Cerrar" style="background:none;border:none;cursor:pointer;color:var(--color-text-muted);font-size:18px;line-height:1;padding:4px">✕</button>
+    </div>
+  </header>
 
-  <!-- Mobile nav -->
-  <div class="mobile-nav" role="navigation" aria-label="Menú móvil">
-    <a href="index.html">Inicio</a>
-    <a href="tienda.html">Tienda</a>
-    <a href="nosotros.html">Nosotros</a>
-    <a href="contacto.html" class="active">Contacto</a>
-    <a href="carrito.html">🛒 Carrito</a>
-  </div>
-
-  <main class="page-content">
+  <main>
 
     <!-- ══ HERO ════════════════════════════════════════════════════════════════ -->
     <section class="hero">
@@ -344,60 +350,49 @@
 
   </main>
 
-  <!-- ══ FOOTER ════════════════════════════════════════════════════════════════ -->
-  <footer class="footer">
-    <div class="container">
-      <div class="footer__grid">
-
-        <!-- Marca -->
-        <div class="footer__brand">
-          <span class="navbar__logo-text">
-            Gaia <span style="color:var(--color-primary)">Bolivia</span>
-          </span>
-          <p>Productos de belleza natural boliviana. Cuidamos tu piel con el poder de la naturaleza.</p>
-          <div class="footer__social">
-            <a href="https://www.instagram.com/gaia.bolivia/" aria-label="Instagram">📸</a>
-            <a href="#" data-tiktok aria-label="TikTok">🎵</a>
-            <a href="#" data-facebook aria-label="Facebook">👍</a>
-          </div>
+  <!-- ── FOOTER ── -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="img/logo.svg" alt="Gaia Bolivia" style="height:44px;width:auto;display:block;margin-bottom:14px;filter:brightness(10)"
+             onerror="this.onerror=null;this.src='img/logo.svg';this.style.filter='brightness(10)'">
+        <p class="footer-tagline">Moda femenina con estilo y elegancia, diseñada para la mujer boliviana moderna.</p>
+        <div class="footer-social">
+          <a href="https://www.instagram.com/gaia.bolivia/" aria-label="Instagram">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          </a>
+          <a href="#" data-facebook aria-label="Facebook">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+          </a>
         </div>
-
-        <!-- Links: Tienda / Nosotros -->
-        <div>
-          <p class="footer__heading">Tienda</p>
-          <ul class="footer__links">
-            <li><a href="tienda.html">Todos los productos</a></li>
-            <li><a href="carrito.html">Mi carrito</a></li>
-          </ul>
-          <p class="footer__heading" style="margin-top:1.5rem">Nosotros</p>
-          <ul class="footer__links">
-            <li><a href="nosotros.html">Quiénes somos</a></li>
-            <li><a href="contacto.html">Contacto</a></li>
-          </ul>
-        </div>
-
-        <!-- Contacto -->
-        <div>
-          <p class="footer__heading">Contacto</p>
-          <ul class="footer__links">
-            <li><a href="https://wa.me/59162066644">💬 WhatsApp</a></li>
-            <li><a href="https://www.instagram.com/gaia.bolivia/">📸 Instagram</a></li>
-            <li><a href="#" data-tiktok>🎵 TikTok</a></li>
-            <li><a href="#" data-facebook>👍 Facebook</a></li>
-          </ul>
-        </div>
-
       </div>
-      <div class="footer__bottom">
-        <span>© 2025 Gaia Bolivia Beauty. Todos los derechos reservados.</span>
-        <span>Hecho con ♥ en Bolivia</span>
+      <div class="footer-links">
+        <h5>Páginas</h5>
+        <ul>
+          <li><a href="index.html">Inicio</a></li>
+          <li><a href="tienda.html">Tienda</a></li>
+          <li><a href="nosotros.html">Nosotros</a></li>
+          <li><a href="contacto.html">Contacto</a></li>
+          <li><a href="carrito.html">Mi Carrito</a></li>
+        </ul>
       </div>
+      <div class="footer-links">
+        <h5>Contacto</h5>
+        <ul>
+          <li><a href="https://wa.me/59162066644" target="_blank" rel="noopener">WhatsApp +591 62066644</a></li>
+          <li><a href="https://www.instagram.com/gaia.bolivia/" target="_blank" rel="noopener">Instagram @gaia.bolivia</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 Gaia Bolivia · Todos los derechos reservados</span>
+      <span>Santa Cruz de la Sierra, Bolivia</span>
     </div>
   </footer>
 
-  <!-- WhatsApp FAB -->
-  <a href="https://wa.me/59162066644" target="_blank" class="whatsapp-fab" aria-label="Contactar por WhatsApp">
-    💬
+  <a class="whatsapp-fab" href="https://wa.me/59162066644" target="_blank" rel="noopener"
+     aria-label="Contactar por WhatsApp" title="WhatsApp">
+    <svg style="width:28px;height:28px;fill:#fff" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.554 4.122 1.523 5.854L.057 23.142a.5.5 0 00.611.612l5.288-1.467A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.677-.523-5.193-1.43l-.371-.22-3.838 1.065 1.064-3.837-.241-.385A9.955 9.955 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
   </a>
 
   <script>
@@ -430,5 +425,6 @@
   <script src="js/api.js"></script>
   <script src="js/cart.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/animations.js"></script>
 </body>
 </html>

@@ -3,324 +3,268 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tienda — Gaia Bolivia Beauty</title>
-  <meta name="description" content="Catálogo de productos de belleza natural Gaia Bolivia.">
+  <title>Tienda — Gaia Bolivia</title>
+  <meta name="description" content="Catálogo de ropa femenina Gaia Bolivia. Vestidos, blusas, pantalones y más.">
+  <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/header.css">
+  <link rel="stylesheet" href="css/products.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
   <style>
-    /* ── Page header ── */
-    .shop-header {
-      background: linear-gradient(135deg, var(--color-bg-soft) 0%, var(--color-primary-pale) 100%);
-      padding: 2.5rem 0 3rem;
-    }
-    .shop-header h1 { color: var(--color-text); margin-bottom: .3rem; }
-    .shop-header p  { color: var(--color-primary); font-size: .95rem; }
+    .whatsapp-fab { display: flex !important; }
 
-    /* ── Breadcrumb ── */
-    .breadcrumb {
-      display: flex; align-items: center; gap: .45rem; flex-wrap: wrap;
-      font-size: .82rem; color: var(--text-light);
-      padding: 1rem 0; border-bottom: 1px solid var(--border);
-      margin-bottom: 1.25rem;
+    /* Page title strip */
+    .page-strip {
+      background: var(--color-bg-soft);
+      border-bottom: 1px solid var(--color-border);
+      padding: 28px 24px;
     }
-    .breadcrumb a { color: var(--primary); }
-    .breadcrumb__sep { color: var(--border); }
-
-    /* ── Shop layout ── */
-    .shop-layout {
-      display: grid;
-      grid-template-columns: 260px 1fr;
-      gap: 2rem;
-      align-items: start;
-      padding: 1.5rem 0 4rem;
+    .page-strip__inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
     }
-    @media (max-width: 900px) {
-      .shop-layout { grid-template-columns: 1fr; }
+    .page-strip h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(22px, 3vw, 32px);
+      font-weight: 400;
+      color: var(--color-black);
+      letter-spacing: .04em;
     }
-
-    /* ── Sidebar ── */
-    .shop-sidebar { position: sticky; top: calc(var(--navbar-h) + 1rem); }
-    .sidebar-card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
+    .page-strip p {
+      font-size: 13px;
+      color: var(--color-text-muted);
+      margin-top: 4px;
+      font-family: var(--font-sans);
     }
-    .sidebar-section {
-      padding: 1.2rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .sidebar-section:last-child { border-bottom: none; }
-    .sidebar-section__title {
-      font-size: .67rem; font-weight: 600;
-      letter-spacing: .12em; text-transform: uppercase;
-      color: var(--text-light); margin-bottom: .85rem;
-    }
-
-    /* Search */
-    .sidebar-search { position: relative; }
-    .sidebar-search input { padding-left: 2.35rem; }
-    .sidebar-search::before {
-      content: '🔍'; position: absolute;
-      left: .8rem; top: 50%; transform: translateY(-50%);
-      font-size: .78rem; pointer-events: none;
-    }
-
-    /* Category list */
-    .cat-list {
-      display: flex; flex-direction: column; gap: .3rem;
-      max-height: 260px; overflow-y: auto; padding-right: .25rem;
-    }
-    .cat-list::-webkit-scrollbar { width: 4px; }
-    .cat-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-    .cat-list label {
-      display: flex; align-items: center; gap: .55rem;
-      font-size: .87rem; color: var(--text);
-      cursor: pointer; padding: .3rem .2rem;
-      border-radius: var(--radius-sm);
-      transition: color var(--transition);
-    }
-    .cat-list label:hover { color: var(--primary); }
-    .cat-list input[type=radio] {
-      accent-color: var(--primary);
-      width: 15px; height: 15px; flex-shrink: 0; cursor: pointer;
-    }
-    .cat-count { margin-left: auto; font-size: .72rem; color: var(--text-light); }
-
-    /* Mobile toggle */
-    .filter-toggle {
-      display: none; width: 100%;
-      padding: .75rem 1rem;
-      background: var(--white); border: 1.5px solid var(--border);
-      border-radius: var(--radius); font-size: .9rem; font-weight: 500;
-      color: var(--secondary); cursor: pointer;
-      align-items: center; justify-content: space-between;
-      margin-bottom: .75rem;
-    }
-    .filter-toggle__icon { transition: transform .25s; display: inline-block; }
-    .filter-toggle.open .filter-toggle__icon { transform: rotate(180deg); }
-    @media (max-width: 900px) {
-      .filter-toggle { display: flex; }
-      .shop-sidebar { position: static; }
-      .sidebar-card { display: none; }
-      .sidebar-card.open { display: block; margin-bottom: .75rem; }
-    }
-
-    /* ── Toolbar ── */
-    .shop-toolbar {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: .75rem; flex-wrap: wrap; margin-bottom: 1.25rem;
-    }
-    .count-text { font-size: .85rem; color: var(--text-light); }
-    .count-text strong { color: var(--secondary); }
-
-    /* ── Numeric pagination ── */
-    .pagination {
-      display: flex; align-items: center; justify-content: center;
-      gap: .4rem; margin-top: 2.5rem; flex-wrap: wrap;
-    }
-    .page-btn {
-      min-width: 38px; height: 38px; padding: 0 .6rem;
-      border: 1.5px solid var(--border); border-radius: var(--radius);
-      background: var(--white); font-size: .85rem; font-weight: 500;
-      color: var(--text-light); cursor: pointer;
-      transition: all var(--transition);
-      display: inline-flex; align-items: center; justify-content: center;
-      font-family: var(--font-body);
-    }
-    .page-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
-    .page-btn.active {
-      background: var(--primary); border-color: var(--primary);
-      color: var(--white); pointer-events: none;
-    }
-    .page-btn:disabled { opacity: .35; pointer-events: none; }
-    .page-ellipsis { font-size: .85rem; color: var(--text-light); padding: 0 .2rem; }
-
-    /* ── Skeleton ── */
-    @keyframes shimmer {
-      0%   { background-position: -600px 0; }
-      100% { background-position:  600px 0; }
-    }
-    .skeleton {
-      background: linear-gradient(90deg, #ede3d5 25%, #f5ede0 50%, #ede3d5 75%);
-      background-size: 600px 100%;
-      animation: shimmer 1.4s infinite linear;
-      border-radius: var(--radius);
-    }
-    .skeleton-card {
-      background: var(--white); border: 1px solid var(--border);
-      border-radius: var(--radius-lg); overflow: hidden;
-    }
-    .skeleton-img  { height: 220px; border-radius: 0; }
-    .skeleton-body { padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: .65rem; }
-    .skeleton-line { height: 13px; }
-    .skeleton-line.short { width: 50%; }
-    .skeleton-line.price { width: 35%; height: 16px; }
-    .skeleton-btn  { height: 36px; border-radius: var(--radius); margin-top: .35rem; }
-
-    /* ── WhatsApp FAB ── */
-    .whatsapp-fab {
-      position: fixed; bottom: 1.75rem; right: 1.75rem; z-index: 1000;
-      width: 56px; height: 56px; background: #25d366; border-radius: 50%;
-      display: none; align-items: center; justify-content: center;
-      font-size: 1.6rem; box-shadow: 0 4px 18px rgba(37,211,102,.4);
-      text-decoration: none; transition: transform var(--transition), box-shadow var(--transition);
-    }
-    .whatsapp-fab:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(37,211,102,.55); }
   </style>
 </head>
 <body data-page="tienda">
 
-  <!-- Navbar -->
-  <nav class="navbar" role="navigation" aria-label="Navegación principal">
-    <div class="navbar__inner">
-      <a href="index.html" class="navbar__logo">
-        <img src="assets/gaia-logo.svg" alt="Gaia Bolivia" onerror="this.style.display='none'">
-        <span class="navbar__logo-text">Gaia <span>Bolivia</span></span>
+  <!-- ── ANNOUNCEMENT BAR ──────────────────────────────────────────────── -->
+  <div class="announcement-bar">
+    Envíos a todo Bolivia &nbsp;·&nbsp; Paga con QR &nbsp;·&nbsp;
+    <a href="#" data-whatsapp>Escríbenos por WhatsApp</a>
+  </div>
+
+  <!-- ── HEADER ────────────────────────────────────────────────────────── -->
+  <header class="site-header" id="site-header" role="banner">
+    <div class="header-inner">
+
+      <a href="index.html" class="site-logo" aria-label="Gaia Bolivia — Inicio">
+        <img src="img/logo.svg" alt="Gaia Bolivia" class="site-logo__img"
+             onerror="this.onerror=null;this.src='img/logo.svg'">
       </a>
-      <ul class="navbar__nav" role="list">
-        <li><a href="index.html">Inicio</a></li>
-        <li><a href="tienda.html" class="active">Tienda</a></li>
-        <li><a href="nosotros.html">Nosotros</a></li>
-        <li><a href="contacto.html">Contacto</a></li>
+
+      <ul class="main-nav" id="main-nav" role="list">
+        <li class="nav-item has-dropdown">
+          <a href="tienda.html" class="nav-link">
+            Tienda <span class="chevron">▾</span>
+          </a>
+          <ul class="dropdown-menu" role="list">
+            <li><a href="tienda.html">Ver Todo</a></li>
+            <li><a href="tienda.html?category=vestidos">Vestidos</a></li>
+            <li><a href="tienda.html?category=blusas">Blusas &amp; Tops</a></li>
+            <li><a href="tienda.html?category=pantalones">Pantalones</a></li>
+            <li><a href="tienda.html?category=faldas">Faldas</a></li>
+            <li><a href="tienda.html?category=accesorios">Accesorios</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="tienda.html?category=vestidos" class="nav-link">Vestidos</a></li>
+        <li class="nav-item"><a href="tienda.html?category=blusas" class="nav-link">Blusas &amp; Tops</a></li>
+        <li class="nav-item"><a href="nosotros.html" class="nav-link">Nosotros</a></li>
+        <li class="nav-item"><a href="contacto.html" class="nav-link">Contacto</a></li>
       </ul>
-      <div class="navbar__actions">
-        <a href="carrito.html" class="cart-btn" aria-label="Ver carrito">
-          🛒 <span class="badge" id="cart-badge" style="display:none">0</span>
+
+      <div class="header-actions">
+        <button class="btn-icon btn-search" aria-label="Buscar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="11" cy="11" r="7"/>
+            <line x1="16.5" y1="16.5" x2="22" y2="22"/>
+          </svg>
+        </button>
+        <a href="carrito.html" class="btn-icon" aria-label="Ver carrito"
+           style="position:relative;text-decoration:none;color:inherit">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 01-8 0"/>
+          </svg>
+          <span class="cart-count" id="cart-count" data-count="0">0</span>
         </a>
-        <button class="hamburger" aria-label="Menú" aria-expanded="false">
+        <button class="btn-menu" id="btn-menu" aria-label="Abrir menú" aria-expanded="false">
           <span></span><span></span><span></span>
         </button>
       </div>
+
     </div>
-  </nav>
-  <div class="mobile-nav">
-    <a href="index.html">Inicio</a>
-    <a href="tienda.html">Tienda</a>
-    <a href="carrito.html">🛒 Carrito</a>
-  </div>
 
-  <main class="page-content">
+    <div class="search-bar" id="search-bar" role="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+           style="flex-shrink:0;color:var(--color-text-muted)">
+        <circle cx="11" cy="11" r="7"/>
+        <line x1="16.5" y1="16.5" x2="22" y2="22"/>
+      </svg>
+      <input id="search-input" type="text" placeholder="Buscar productos..."
+             autocomplete="off" aria-label="Buscar productos">
+      <button id="search-close" aria-label="Cerrar búsqueda"
+              style="background:none;border:none;cursor:pointer;color:var(--color-text-muted);font-size:18px;line-height:1;padding:4px">✕</button>
+    </div>
+  </header>
 
-    <div class="shop-header">
-      <div class="container">
-        <h1>Nuestra Tienda</h1>
-        <p>Belleza natural para cada tipo de piel</p>
+  <main>
+
+    <!-- ── PAGE TITLE ─────────────────────────────────────────────────── -->
+    <div class="page-strip">
+      <div class="page-strip__inner">
+        <h1>Tienda</h1>
+        <p>Descubrí nuestra colección completa</p>
       </div>
     </div>
 
-    <div class="container">
+    <!-- ── TIENDA LAYOUT ──────────────────────────────────────────────── -->
+    <div class="tienda-layout">
 
-      <!-- Breadcrumb -->
-      <nav class="breadcrumb" aria-label="Ruta de navegación">
-        <a href="index.html">Inicio</a>
-        <span class="breadcrumb__sep">›</span>
-        <a href="tienda.html">Tienda</a>
-        <span class="breadcrumb__sep" id="cat-sep" style="display:none">›</span>
-        <span id="breadcrumb-cat" style="color:var(--primary)"></span>
-      </nav>
+      <!-- Filter bar (sort + toggle + count) -->
+      <div class="filter-bar">
+        <button class="filter-toggle" id="filter-toggle" aria-expanded="false" aria-controls="filter-panel">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" y1="6" x2="20" y2="6"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+            <line x1="11" y1="18" x2="13" y2="18"/>
+          </svg>
+          Filtrar
+        </button>
 
-      <!-- Mobile filter toggle -->
-      <button class="filter-toggle" id="filter-toggle" aria-expanded="false">
-        <span>🔧 Filtros y búsqueda</span>
-        <span class="filter-toggle__icon">▼</span>
-      </button>
+        <div class="sort-select-wrap">
+          <select id="sort-select" class="sort-select" aria-label="Ordenar por">
+            <option value="">Relevancia</option>
+            <option value="price_asc">Precio: menor a mayor</option>
+            <option value="price_desc">Precio: mayor a menor</option>
+            <option value="-id">Más nuevo</option>
+          </select>
+        </div>
 
-      <div class="shop-layout">
+        <div class="filter-chips" id="active-filters" aria-live="polite"></div>
 
-        <!-- ─── Sidebar ─── -->
-        <aside class="shop-sidebar" aria-label="Filtros">
-          <div class="sidebar-card" id="sidebar-card">
+        <span class="product-count" id="product-count" aria-live="polite"></span>
+      </div>
 
-            <!-- Búsqueda -->
-            <div class="sidebar-section">
-              <p class="sidebar-section__title">Buscar</p>
-              <div class="sidebar-search">
-                <input type="search" id="search-input" class="form-input"
-                  placeholder="Nombre del producto..." autocomplete="off">
-              </div>
-            </div>
+      <!-- Tienda body: sidebar + grid -->
+      <div class="tienda-body">
 
-            <!-- Categorías -->
-            <div class="sidebar-section">
-              <p class="sidebar-section__title">Categoría</p>
-              <ul class="cat-list" id="category-list" role="radiogroup" aria-label="Filtrar por categoría">
-                <li>
-                  <label>
-                    <input type="radio" name="cat" value="" checked> Todas
-                  </label>
-                </li>
-              </ul>
-            </div>
+        <!-- ─── Filter panel ─── -->
+        <aside class="filter-panel" id="filter-panel" aria-label="Filtros">
 
-            <!-- Ordenar -->
-            <div class="sidebar-section">
-              <p class="sidebar-section__title">Ordenar por</p>
-              <select id="sort-select" class="form-select" style="width:100%">
-                <option value="">Relevancia</option>
-                <option value="price_asc">Precio: menor a mayor</option>
-                <option value="price_desc">Precio: mayor a menor</option>
-                <option value="-id">Más nuevo</option>
-              </select>
-            </div>
-
-            <!-- Limpiar -->
-            <div class="sidebar-section">
-              <button class="btn btn-outline btn-full btn-sm" id="clear-filters">
-                ✕ Limpiar filtros
-              </button>
-            </div>
-
+          <div class="filter-group">
+            <p class="filter-group-title">Categoría</p>
+            <ul class="filter-list" id="filter-categories" role="listbox" aria-label="Filtrar por categoría">
+              <li class="active" data-cat-id=""><span>Todas las categorías</span></li>
+            </ul>
           </div>
+
+          <button class="btn-clear-filters" id="btn-clear-filters">
+            Limpiar filtros
+          </button>
+
         </aside>
 
-        <!-- ─── Main ─── -->
-        <div>
-          <div class="shop-toolbar">
-            <p class="count-text" id="products-count" aria-live="polite"></p>
+        <!-- ─── Products ─── -->
+        <div class="tienda-products">
+          <div class="products-grid" id="products-grid" aria-live="polite">
+            <div class="product-skeleton"></div>
+            <div class="product-skeleton"></div>
+            <div class="product-skeleton"></div>
+            <div class="product-skeleton"></div>
+            <div class="product-skeleton"></div>
+            <div class="product-skeleton"></div>
+            <div class="product-skeleton"></div>
+            <div class="product-skeleton"></div>
           </div>
-          <div class="product-grid" id="products-grid" aria-live="polite"></div>
           <div id="pagination" aria-label="Paginación"></div>
         </div>
 
       </div>
     </div>
+
   </main>
 
-  <footer class="footer">
-    <div class="container">
-      <div class="footer__grid">
-        <div class="footer__brand">
-          <span class="navbar__logo-text">Gaia <span style="color:var(--color-primary)">Bolivia</span></span>
-          <p>Productos de belleza natural boliviana.</p>
-        </div>
-        <div>
-          <p class="footer__heading">Navegación</p>
-          <ul class="footer__links">
-            <li><a href="index.html">Inicio</a></li>
-            <li><a href="tienda.html">Tienda</a></li>
-            <li><a href="carrito.html">Carrito</a></li>
-          </ul>
-        </div>
-        <div>
-          <p class="footer__heading">Contacto</p>
-          <ul class="footer__links">
-            <li><a href="#" data-whatsapp>💬 WhatsApp</a></li>
-          </ul>
+  <!-- ── FOOTER ─────────────────────────────────────────────────────────── -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+
+      <div class="footer-brand">
+        <img src="img/logo.svg" alt="Gaia Bolivia" style="height:44px;width:auto;display:block;margin-bottom:14px;filter:brightness(10)"
+             onerror="this.onerror=null;this.src='img/logo.svg';this.style.filter='brightness(10)'">
+        <p class="footer-tagline">Moda femenina con estilo y elegancia. Vestidos, blusas y más, diseñados para la mujer boliviana moderna.</p>
+        <div class="footer-social">
+          <a href="#" data-instagram aria-label="Instagram">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+              <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+            </svg>
+          </a>
+          <a href="#" data-facebook aria-label="Facebook">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/>
+            </svg>
+          </a>
+          <a href="#" data-tiktok aria-label="TikTok">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M9 12a4 4 0 104 4V4a5 5 0 005 5"/>
+            </svg>
+          </a>
         </div>
       </div>
-      <div class="footer__bottom">
-        <span>© 2025 Gaia Bolivia Beauty. Todos los derechos reservados.</span>
-        <span>Hecho con ♥ en Bolivia</span>
+
+      <div class="footer-links">
+        <h5>Páginas</h5>
+        <ul>
+          <li><a href="index.html">Inicio</a></li>
+          <li><a href="tienda.html">Tienda</a></li>
+          <li><a href="nosotros.html">Nosotros</a></li>
+          <li><a href="contacto.html">Contacto</a></li>
+          <li><a href="carrito.html">Mi Carrito</a></li>
+        </ul>
       </div>
+
+      <div class="footer-links">
+        <h5>Categorías</h5>
+        <ul>
+          <li><a href="tienda.html?category=vestidos">Vestidos</a></li>
+          <li><a href="tienda.html?category=blusas">Blusas &amp; Tops</a></li>
+          <li><a href="tienda.html?category=pantalones">Pantalones</a></li>
+          <li><a href="tienda.html?category=faldas">Faldas</a></li>
+          <li><a href="tienda.html?category=accesorios">Accesorios</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2025 Gaia Bolivia · Todos los derechos reservados</span>
+      <span>Santa Cruz de la Sierra, Bolivia &nbsp;·&nbsp;
+        <a href="#" data-whatsapp>WhatsApp</a>
+      </span>
     </div>
   </footer>
 
-  <a class="whatsapp-fab" href="#" data-whatsapp aria-label="Contactar por WhatsApp">💬</a>
+  <!-- ── WHATSAPP FAB ────────────────────────────────────────────────────── -->
+  <a class="whatsapp-fab" href="#" data-whatsapp
+     aria-label="Contactar por WhatsApp" title="WhatsApp">
+    <svg style="width:28px;height:28px;fill:#fff" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.554 4.122 1.523 5.854L.057 23.142a.5.5 0 00.611.612l5.288-1.467A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.677-.523-5.193-1.43l-.371-.22-3.838 1.065 1.064-3.837-.241-.385A9.955 9.955 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+    </svg>
+  </a>
 
   <script src="js/api.js"></script>
   <script src="js/cart.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/animations.js"></script>
+
 </body>
 </html>
