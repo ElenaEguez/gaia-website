@@ -1,0 +1,12 @@
+:root {
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --color-primary: #c78271;
+  --color-primary-dark: #a5604f;
+  --color-primary-soft: #f7e9e5;
+  --color-black: #1f1f1f;
+  --color-bg-soft: #fdf8f7;
+  --color-text-muted: #7f6a63;
+  --color-border: rgba(199, 130, 113, 0.25);
+}
