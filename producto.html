@@ -5,12 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Producto — Gaia Bolivia</title>
   <meta name="description" content="Detalle de producto Gaia Bolivia.">
-  <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/layout.css">
-  <link rel="stylesheet" href="css/header.css">
-  <link rel="stylesheet" href="css/products.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
   <style>
@@ -30,8 +27,8 @@
     <div class="header-inner">
 
       <a href="index.html" class="site-logo" aria-label="Gaia Bolivia — Inicio">
-        <img src="img/logo.svg" alt="Gaia Bolivia" class="site-logo__img"
-             onerror="this.onerror=null;this.src='img/logo.svg'">
+        <img src="assets/gaia-logo.svg" alt="Gaia Bolivia" class="site-logo__img"
+             onerror="this.style.display='none'">
       </a>
 
       <ul class="main-nav" id="main-nav" role="list">
@@ -123,8 +120,8 @@
     <div class="footer-inner">
 
       <div class="footer-brand">
-        <img src="img/logo.svg" alt="Gaia Bolivia" style="height:44px;width:auto;display:block;margin-bottom:14px;filter:brightness(10)"
-             onerror="this.onerror=null;this.src='img/logo.svg';this.style.filter='brightness(10)'">
+        <img src="assets/gaia-logo.svg" alt="Gaia Bolivia" style="height:44px;width:auto;display:block;margin-bottom:14px;filter:brightness(10)"
+             onerror="this.style.display='none'">
         <p class="footer-tagline">Moda femenina con estilo y elegancia. Vestidos, blusas y más, diseñados para la mujer boliviana moderna.</p>
         <div class="footer-social">
           <a href="#" data-instagram aria-label="Instagram">
@@ -191,7 +188,6 @@
   <script src="js/api.js"></script>
   <script src="js/cart.js"></script>
   <script src="js/app.js"></script>
-  <script src="js/animations.js"></script>
 
 </body>
 </html>
