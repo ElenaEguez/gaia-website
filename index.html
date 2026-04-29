@@ -3,341 +3,576 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gaia Bolivia Beauty — Cosméticos naturales</title>
-  <meta name="description" content="Descubre los mejores productos de belleza natural de Bolivia. Cremas, esencias y más.">
+  <title>Gaia Bolivia — Moda Femenina</title>
+  <meta name="description" content="Tienda de ropa femenina en Santa Cruz de la Sierra, Bolivia. Vestidos, blusas, pantalones y más.">
+  <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/header.css">
+  <link rel="stylesheet" href="css/products.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
   <style>
-    /* ── SECCIÓN 1: Hero ───────────────────────────────────────────────── */
-    .hero {
-      min-height: calc(100vh - var(--navbar-h));
-      display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(160deg, var(--color-bg-soft) 0%, var(--color-primary-pale) 100%);
-      padding: 5rem 1.5rem;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .hero::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse at 50% 60%, rgba(199,130,113,0.15) 0%, transparent 65%);
-      pointer-events: none;
-    }
-    .hero__content {
-      position: relative; z-index: 1;
-      max-width: 700px;
-    }
-    .hero__eyebrow {
-      display: inline-block;
-      font-size: .72rem; font-weight: 600; letter-spacing: .22em;
-      text-transform: uppercase; color: var(--accent);
-      margin-bottom: 1.25rem;
-    }
-    .hero h1 {
-      color: var(--color-text);
-      font-size: clamp(2.8rem, 7vw, 5rem);
-      margin-bottom: 1.25rem;
-    }
-    .hero__sub {
-      font-size: 1.05rem;
-      color: var(--color-text-muted);
-      max-width: 480px;
-      margin: 0 auto 2.75rem;
-      line-height: 1.7;
-    }
+    /* WhatsApp FAB visible on all pages that include it */
+    .whatsapp-fab { display: flex !important; }
 
-    /* ── Skeleton shimmer ──────────────────────────────────────────────── */
-    @keyframes shimmer {
-      0%   { background-position: -600px 0; }
-      100% { background-position:  600px 0; }
-    }
-    .skeleton {
-      background: linear-gradient(90deg,
-        #ede3d5 25%, #f5ede0 50%, #ede3d5 75%);
-      background-size: 600px 100%;
-      animation: shimmer 1.4s infinite linear;
-      border-radius: var(--radius);
-    }
-    .skeleton-card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-    }
-    .skeleton-img  { height: 200px; border-radius: 0; }
-    .skeleton-body { padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: .65rem; }
-    .skeleton-line { height: 13px; }
-    .skeleton-line.short { width: 50%; }
-    .skeleton-line.price { width: 35%; height: 16px; }
-
-    /* ── SECCIÓN 2: Categorías ─────────────────────────────────────────── */
-    .categories-section {
+    /* ── TESTIMONIOS ──────────────────────────────────────────── */
+    .ix-testimonios {
       padding: 5rem 0;
-      background: var(--color-bg);
+      background: var(--color-bg-soft);
     }
-    .categories-section .section-intro {
-      text-align: center; margin-bottom: 2.75rem;
+    .ix-testimonios-header { text-align: center; margin-bottom: 3rem; }
+    .ix-testimonios-header h2 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.4rem, 2.5vw, 2rem);
+      font-weight: 400;
+      color: var(--color-black);
+      letter-spacing: .04em;
     }
-    .categories-section .section-intro h2 { margin-bottom: .4rem; }
+    .ix-slider-wrap {
+      position: relative;
+      max-width: 800px; margin: 0 auto;
+      padding: 0 3rem;
+    }
+    @media (max-width: 640px) { .ix-slider-wrap { padding: 0 1.25rem; } }
+    .ix-slides-overflow { overflow: hidden; }
+    .ix-slides { display: flex; transition: transform .4s cubic-bezier(.4,0,.2,1); }
+    .ix-slide { min-width: 100%; }
+    .ix-review-card {
+      background: #fff;
+      border: 1px solid var(--color-border);
+      padding: 2.5rem 2rem;
+      text-align: center;
+    }
+    .ix-stars {
+      color: var(--color-primary); font-size: 1rem;
+      letter-spacing: .1em; margin-bottom: 1.25rem;
+    }
+    .ix-review-text {
+      font-family: var(--font-serif);
+      font-size: 1.2rem; font-style: italic;
+      color: var(--color-text); line-height: 1.75;
+      margin-bottom: 1.5rem;
+    }
+    .ix-reviewer {
+      display: flex; align-items: center;
+      justify-content: center; gap: .9rem;
+    }
+    .ix-reviewer__avatar {
+      width: 46px; height: 46px; border-radius: 50%;
+      object-fit: cover; border: 2px solid var(--color-border);
+    }
+    .ix-reviewer__name {
+      font-family: var(--font-sans); font-size: .88rem; font-weight: 600;
+      color: var(--color-black); display: block;
+    }
+    .ix-reviewer__city { font-size: .75rem; color: var(--color-text-muted); }
+    .ix-slider-dots {
+      display: flex; justify-content: center;
+      gap: .5rem; margin-top: 1.75rem;
+    }
+    .ix-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--color-border); border: none; cursor: pointer;
+      transition: background .2s, transform .2s;
+    }
+    .ix-dot.active { background: var(--color-primary); transform: scale(1.35); }
+    .ix-slider-arrow {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 40px; height: 40px; border-radius: 50%;
+      background: #fff; border: 1px solid var(--color-border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 1.1rem; color: var(--color-text);
+      transition: border-color .2s, color .2s; z-index: 2;
+    }
+    .ix-slider-arrow:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .ix-slider-arrow.prev { left: 0; }
+    .ix-slider-arrow.next { right: 0; }
+    @media (max-width: 640px) { .ix-slider-arrow { display: none; } }
 
-    .categories-grid {
+    /* ── BENEFICIOS ───────────────────────────────────────────── */
+    .ix-benefits {
+      border-top: 1px solid var(--color-border);
+      border-bottom: 1px solid var(--color-border);
+      background: #fff;
+      padding: 2.75rem 0;
+    }
+    .ix-benefits-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 1.25rem;
+      gap: 2rem;
     }
-    @media (max-width: 900px) {
-      .categories-grid { grid-template-columns: repeat(4, 1fr); }
+    @media (max-width: 768px) {
+      .ix-benefits-grid { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
     }
-    @media (max-width: 680px) {
-      .categories-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-    }
-
-    .category-card {
+    .ix-benefit {
       display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: .8rem;
-      aspect-ratio: 1 / 1;
-      background: var(--white);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 1.5rem 1rem;
-      text-align: center;
-      text-decoration: none;
-      cursor: pointer;
-      transition: border-color var(--transition), box-shadow var(--transition),
-                  transform var(--transition);
+      align-items: center; text-align: center; gap: .6rem;
     }
-    .category-card:hover {
-      border-color: var(--primary);
-      box-shadow: var(--shadow);
-      transform: translateY(-4px);
+    .ix-benefit svg {
+      width: 40px; height: 40px;
+      stroke: var(--color-primary); fill: none; stroke-width: 1.5;
     }
-    .category-card__icon { font-size: 2.25rem; line-height: 1; }
-    .category-card__name {
-      font-family: var(--font-heading);
-      font-size: 1rem; font-weight: 600;
-      color: var(--secondary);
-      line-height: 1.3;
-      margin: 0;
+    .ix-benefit-title {
+      font-family: var(--font-sans);
+      font-size: .8rem; font-weight: 600;
+      color: var(--color-text); letter-spacing: .05em;
+      text-transform: uppercase; margin: 0;
     }
-    /* skeleton state for category cards */
-    .category-card.sk { aspect-ratio: 1/1; border-radius: var(--radius-lg); }
-
-    /* ── SECCIÓN 3: Productos ──────────────────────────────────────────── */
-    .products-section {
-      padding: 5rem 0;
-      background: var(--color-bg-section);
-    }
-    .section-header {
-      display: flex; justify-content: space-between; align-items: flex-end;
-      margin-bottom: 2rem;
-    }
-    .section-header h2 { margin-bottom: .25rem; }
-    .section-header p  { color: var(--text-light); font-size: .9rem; }
-
-    /* ── SECCIÓN 4: Banner promocional ────────────────────────────────── */
-    .promo-banner {
-      padding: 4rem 1.5rem;
-      text-align: center;
-      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-    }
-    .promo-banner h2 {
-      color: var(--color-white);
-      font-size: clamp(1.7rem, 4vw, 2.6rem);
-      margin-bottom: .6rem;
-    }
-    .promo-banner p {
-      color: var(--color-white);
-      font-size: 1.05rem;
-      max-width: 480px; margin: 0 auto 2rem;
-    }
-    #promo-whatsapp { display: none; }
-    .promo-banner .btn-white {
-      background: var(--color-white);
-      color: var(--color-primary-dark);
-      font-weight: 600;
-    }
-    .promo-banner .btn-white:hover {
-      background: var(--color-primary);
+    .ix-benefit-desc {
+      font-size: .78rem; color: var(--color-text-muted);
+      margin: 0; line-height: 1.5; font-family: var(--font-sans);
     }
 
-    /* ── WhatsApp FAB ──────────────────────────────────────────────────── */
-    .whatsapp-fab {
-      position: fixed; bottom: 1.75rem; right: 1.75rem;
-      z-index: 1000;
-      width: 58px; height: 58px;
-      background: #25d366;
-      border-radius: 50%;
-      display: none; /* JS muestra cuando hay whatsapp */
-      align-items: center; justify-content: center;
-      font-size: 1.65rem;
-      box-shadow: 0 4px 18px rgba(37,211,102,.45);
-      text-decoration: none;
-      transition: transform var(--transition), box-shadow var(--transition);
+    /* ── INSTAGRAM ────────────────────────────────────────────── */
+    .ix-instagram { padding: 4.5rem 0; background: var(--color-bg-soft); }
+    .ix-instagram-heading { text-align: center; margin-bottom: 2.5rem; }
+    .ix-instagram-heading h2 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.3rem, 2vw, 1.75rem);
+      font-weight: 400;
+      color: var(--color-black); letter-spacing: .04em;
+      margin-bottom: .4rem;
     }
-    .whatsapp-fab:hover {
-      transform: scale(1.1);
-      box-shadow: 0 6px 24px rgba(37,211,102,.55);
+    .ix-instagram-heading a {
+      font-family: var(--font-sans); font-size: .8rem;
+      color: var(--color-primary); font-weight: 500; letter-spacing: .04em;
     }
+    .ix-instagram-heading a:hover { text-decoration: underline; }
+    .ix-insta-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: .4rem;
+    }
+    @media (max-width: 768px) { .ix-insta-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 480px) { .ix-insta-grid { grid-template-columns: repeat(2, 1fr); } }
+    .ix-insta-item {
+      position: relative; aspect-ratio: 1;
+      overflow: hidden; display: block;
+    }
+    .ix-insta-item img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform .4s;
+    }
+    .ix-insta-item:hover img { transform: scale(1.08); }
+    .ix-insta-overlay {
+      position: absolute; inset: 0;
+      background: rgba(199,130,113,.6);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity .3s;
+    }
+    .ix-insta-item:hover .ix-insta-overlay { opacity: 1; }
+    .ix-insta-overlay svg { width: 32px; height: 32px; stroke: #fff; fill: none; }
   </style>
 </head>
 <body data-page="home">
 
-  <!-- ── Navbar ── -->
-  <nav class="navbar" role="navigation" aria-label="Navegación principal">
-    <div class="navbar__inner">
-      <a href="index.html" class="navbar__logo">
-        <img src="assets/gaia-logo.svg" alt="Gaia Bolivia" onerror="this.style.display='none'">
-        <span class="navbar__logo-text">Gaia <span>Bolivia</span></span>
+  <!-- ── ANNOUNCEMENT BAR ──────────────────────────────────────────────── -->
+  <div class="announcement-bar">
+    Envíos a todo Bolivia &nbsp;·&nbsp; Paga con QR &nbsp;·&nbsp;
+    <a href="#" data-whatsapp>Escríbenos por WhatsApp</a>
+  </div>
+
+  <!-- ── HEADER ────────────────────────────────────────────────────────── -->
+  <header class="site-header" id="site-header" role="banner">
+    <div class="header-inner">
+
+      <a href="index.html" class="site-logo" aria-label="Gaia Bolivia — Inicio">
+        <img src="img/logo.svg" alt="Gaia Bolivia" class="site-logo__img"
+             onerror="this.onerror=null;this.src='img/logo.svg'">
       </a>
-      <ul class="navbar__nav" role="list">
-        <li><a href="index.html" class="active">Inicio</a></li>
-        <li><a href="tienda.html">Tienda</a></li>
-        <li><a href="nosotros.html">Nosotros</a></li>
-        <li><a href="contacto.html">Contacto</a></li>
+
+      <ul class="main-nav" id="main-nav" role="list">
+        <li class="nav-item has-dropdown">
+          <a href="tienda.html" class="nav-link">
+            Tienda <span class="chevron">▾</span>
+          </a>
+          <ul class="dropdown-menu" role="list">
+            <li><a href="tienda.html">Ver Todo</a></li>
+            <li><a href="tienda.html?category=vestidos">Vestidos</a></li>
+            <li><a href="tienda.html?category=blusas">Blusas &amp; Tops</a></li>
+            <li><a href="tienda.html?category=pantalones">Pantalones</a></li>
+            <li><a href="tienda.html?category=faldas">Faldas</a></li>
+            <li><a href="tienda.html?category=accesorios">Accesorios</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="tienda.html?category=vestidos" class="nav-link">Vestidos</a></li>
+        <li class="nav-item"><a href="tienda.html?category=blusas" class="nav-link">Blusas &amp; Tops</a></li>
+        <li class="nav-item"><a href="nosotros.html" class="nav-link">Nosotros</a></li>
+        <li class="nav-item"><a href="contacto.html" class="nav-link">Contacto</a></li>
       </ul>
-      <div class="navbar__actions">
-        <a href="carrito.html" class="cart-btn" aria-label="Ver carrito">
-          🛒
-          <span class="badge" id="cart-badge" style="display:none">0</span>
+
+      <div class="header-actions">
+        <button class="btn-icon btn-search" aria-label="Buscar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="11" cy="11" r="7"/>
+            <line x1="16.5" y1="16.5" x2="22" y2="22"/>
+          </svg>
+        </button>
+        <a href="carrito.html" class="btn-icon" aria-label="Ver carrito"
+           style="position:relative;text-decoration:none;color:inherit">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 01-8 0"/>
+          </svg>
+          <span class="cart-count" id="cart-count" data-count="0">0</span>
         </a>
-        <button class="hamburger" aria-label="Menú" aria-expanded="false">
+        <button class="btn-menu" id="btn-menu" aria-label="Abrir menú" aria-expanded="false">
           <span></span><span></span><span></span>
         </button>
       </div>
+
     </div>
-  </nav>
 
-  <!-- Mobile nav -->
-  <div class="mobile-nav" role="navigation" aria-label="Menú móvil">
-    <a href="index.html">Inicio</a>
-    <a href="tienda.html">Tienda</a>
-    <a href="carrito.html">🛒 Carrito</a>
-  </div>
+    <!-- Search bar deslizable -->
+    <div class="search-bar" id="search-bar" role="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+           style="flex-shrink:0;color:var(--color-text-muted)">
+        <circle cx="11" cy="11" r="7"/>
+        <line x1="16.5" y1="16.5" x2="22" y2="22"/>
+      </svg>
+      <input id="search-input" type="text" placeholder="Buscar productos..."
+             autocomplete="off" aria-label="Buscar productos">
+      <button id="search-close" aria-label="Cerrar búsqueda"
+              style="background:none;border:none;cursor:pointer;color:var(--color-text-muted);font-size:18px;line-height:1;padding:4px">✕</button>
+    </div>
+  </header>
 
-  <main class="page-content">
+  <main>
 
-    <!-- ══ SECCIÓN 1 — Hero ══════════════════════════════════════════════ -->
-    <section class="hero">
-      <div class="hero__content">
-        <span class="hero__eyebrow">✦ Gaia Bolivia Beauty</span>
-        <h1>Belleza que transforma</h1>
-        <p class="hero__sub">
-          Descubre nuestra colección de productos de belleza y cuidado personal
-        </p>
-        <a href="tienda.html" class="btn btn-primary btn-lg">Ver Colección</a>
+    <!-- ── HERO SLIM ──────────────────────────────────────────────────── -->
+    <section class="hero-slim">
+      <div class="hero-img-overlay"></div>
+      <div class="hero-slim-inner">
+        <p class="hero-eyebrow">Nueva Colección 2025</p>
+        <h1 class="hero-title">Elegancia<br>que te define</h1>
+        <a href="tienda.html" class="btn-primary">Ver Colección</a>
       </div>
     </section>
 
-    <!-- ══ SECCIÓN 2 — Categorías destacadas ════════════════════════════ -->
-    <section class="categories-section">
-      <div class="container">
-        <div class="section-intro">
-          <h2>Categorías</h2>
-          <p>Encuentra exactamente lo que buscas</p>
-        </div>
-        <div class="categories-grid" id="categories-grid" aria-live="polite">
-          <!-- Skeletons iniciales -->
-          <div class="category-card sk skeleton"></div>
-          <div class="category-card sk skeleton"></div>
-          <div class="category-card sk skeleton"></div>
-          <div class="category-card sk skeleton"></div>
-        </div>
+    <!-- ── PRODUCTOS DESTACADOS ───────────────────────────────────────── -->
+    <section class="section-products">
+      <div class="section-header">
+        <h2 class="section-title">Nueva Colección</h2>
+        <a href="tienda.html" class="section-link">Ver todo &rarr;</a>
+      </div>
+      <div class="products-grid" id="featured-products" aria-live="polite">
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
       </div>
     </section>
 
-    <!-- ══ SECCIÓN 3 — Productos destacados ═════════════════════════════ -->
-    <section class="products-section">
-      <div class="container">
-        <div class="section-header">
-          <div>
-            <h2>Más Vendidos</h2>
-            <p>Los favoritos de nuestra comunidad</p>
-          </div>
-          <a href="tienda.html" class="btn btn-outline">Ver todos →</a>
-        </div>
-        <div class="product-grid" id="featured-products" aria-live="polite">
-          <!-- Skeletons inyectados por JS -->
-        </div>
+    <!-- ── CATEGORÍAS VISUALES ────────────────────────────────────────── -->
+    <section class="section-categories">
+      <div class="section-header" style="margin-bottom:24px">
+        <h2 class="section-title">Compra por Categoría</h2>
       </div>
-    </section>
-
-    <!-- ══ SECCIÓN 4 — Banner promocional ═══════════════════════════════ -->
-    <section class="promo-banner">
-      <div class="container">
-        <h2>Envíos a toda Bolivia 🇧🇴</h2>
-        <p id="store-description">
-          Llevamos belleza hasta tu puerta en todas las ciudades del país.
-        </p>
-        <a id="promo-whatsapp" href="#" data-whatsapp
-          class="btn btn-lg btn-white" aria-label="Contactar por WhatsApp">
-          💬 Escribir por WhatsApp
+      <div class="categories-grid" id="categories-visual" aria-live="polite">
+        <!-- Fallback estático; app.js reemplaza con datos de API -->
+        <a href="tienda.html?category=vestidos" class="cat-visual-card">
+          <div style="width:100%;height:100%;background:var(--color-bg-soft)"></div>
+          <div class="cat-visual-card__overlay"></div>
+          <span class="cat-visual-card__label">Vestidos</span>
         </a>
+        <a href="tienda.html?category=blusas" class="cat-visual-card">
+          <div style="width:100%;height:100%;background:#e8d5cf"></div>
+          <div class="cat-visual-card__overlay"></div>
+          <span class="cat-visual-card__label">Blusas &amp; Tops</span>
+        </a>
+        <a href="tienda.html?category=pantalones" class="cat-visual-card">
+          <div style="width:100%;height:100%;background:#d4c5bf"></div>
+          <div class="cat-visual-card__overlay"></div>
+          <span class="cat-visual-card__label">Pantalones</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ── LIFESTYLE BANNER ───────────────────────────────────────────── -->
+    <section class="section-lifestyle">
+      <div class="lifestyle-inner">
+        <p class="eyebrow">Gaia Bolivia</p>
+        <h2>Moda que<br>habla por ti</h2>
+        <p class="lifestyle-desc">Prendas diseñadas para la mujer boliviana moderna. Calidad, estilo y elegancia en cada detalle.</p>
+        <a href="tienda.html" class="btn-outline">Explorar tienda</a>
+      </div>
+    </section>
+
+    <!-- ── LO MÁS NUEVO ───────────────────────────────────────────────── -->
+    <section class="section-products">
+      <div class="section-header">
+        <h2 class="section-title">Lo más nuevo</h2>
+        <a href="tienda.html" class="section-link">Ver todo &rarr;</a>
+      </div>
+      <div class="products-grid" id="latest-products" aria-live="polite">
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+      </div>
+    </section>
+
+    <!-- ── TESTIMONIOS ────────────────────────────────────────────────── -->
+    <section class="ix-testimonios">
+      <div class="container">
+        <div class="ix-testimonios-header">
+          <h2>Lo que dicen nuestras clientas</h2>
+        </div>
+        <div class="ix-slider-wrap">
+          <button class="ix-slider-arrow prev" id="slide-prev" aria-label="Anterior">&#8249;</button>
+          <div class="ix-slides-overflow">
+            <div class="ix-slides" id="ix-slides">
+
+              <div class="ix-slide">
+                <div class="ix-review-card">
+                  <div class="ix-stars">★★★★★</div>
+                  <p class="ix-review-text">"Compré el vestido floral y quedé enamorada. La calidad es increíble y llegó súper rápido. ¡Definitivamente volvería a comprar!"</p>
+                  <div class="ix-reviewer">
+                    <img class="ix-reviewer__avatar" loading="lazy"
+                         src="https://placehold.co/96x96/e8b4a6/ffffff?text=V" alt="Valentina M.">
+                    <div>
+                      <span class="ix-reviewer__name">Valentina M.</span>
+                      <span class="ix-reviewer__city">Santa Cruz de la Sierra</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ix-slide">
+                <div class="ix-review-card">
+                  <div class="ix-stars">★★★★★</div>
+                  <p class="ix-review-text">"Hermosa ropa y atención excelente. Me asesoraron para elegir la talla correcta y el envío llegó en perfectas condiciones."</p>
+                  <div class="ix-reviewer">
+                    <img class="ix-reviewer__avatar" loading="lazy"
+                         src="https://placehold.co/96x96/c78271/ffffff?text=S" alt="Sofía R.">
+                    <div>
+                      <span class="ix-reviewer__name">Sofía R.</span>
+                      <span class="ix-reviewer__city">La Paz</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ix-slide">
+                <div class="ix-review-card">
+                  <div class="ix-stars">★★★★★</div>
+                  <p class="ix-review-text">"Me encantan las prendas de Gaia. Son exactamente como en las fotos, los colores son preciosos y la tela muy cómoda."</p>
+                  <div class="ix-reviewer">
+                    <img class="ix-reviewer__avatar" loading="lazy"
+                         src="https://placehold.co/96x96/a5604f/ffffff?text=C" alt="Camila T.">
+                    <div>
+                      <span class="ix-reviewer__name">Camila T.</span>
+                      <span class="ix-reviewer__city">Cochabamba</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          <button class="ix-slider-arrow next" id="slide-next" aria-label="Siguiente">&#8250;</button>
+        </div>
+        <div class="ix-slider-dots" id="ix-dots">
+          <button class="ix-dot active" data-slide="0" aria-label="Testimonio 1"></button>
+          <button class="ix-dot" data-slide="1" aria-label="Testimonio 2"></button>
+          <button class="ix-dot" data-slide="2" aria-label="Testimonio 3"></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── BENEFICIOS ─────────────────────────────────────────────────── -->
+    <section class="ix-benefits">
+      <div class="container">
+        <div class="ix-benefits-grid">
+          <div class="ix-benefit">
+            <svg viewBox="0 0 24 24">
+              <path d="M5 12H3l9-9 9 9h-2"/>
+              <path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
+              <path d="M9 22v-4a2 2 0 012-2h2a2 2 0 012 2v4"/>
+            </svg>
+            <p class="ix-benefit-title">Envío Seguro</p>
+            <p class="ix-benefit-desc">A todo Bolivia</p>
+          </div>
+          <div class="ix-benefit">
+            <svg viewBox="0 0 24 24">
+              <rect x="2" y="5" width="20" height="14" rx="2"/>
+              <line x1="2" y1="10" x2="22" y2="10"/>
+            </svg>
+            <p class="ix-benefit-title">Pago Flexible</p>
+            <p class="ix-benefit-desc">QR y transferencia</p>
+          </div>
+          <div class="ix-benefit">
+            <svg viewBox="0 0 24 24">
+              <polyline points="1 4 1 10 7 10"/>
+              <path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
+            </svg>
+            <p class="ix-benefit-title">Cambios Fáciles</p>
+            <p class="ix-benefit-desc">Hasta 7 días</p>
+          </div>
+          <div class="ix-benefit">
+            <svg viewBox="0 0 24 24">
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+            </svg>
+            <p class="ix-benefit-title">Atención Personalizada</p>
+            <p class="ix-benefit-desc">WhatsApp directo</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── INSTAGRAM ──────────────────────────────────────────────────── -->
+    <section class="ix-instagram">
+      <div class="container">
+        <div class="ix-instagram-heading">
+          <h2>Síguenos en Instagram</h2>
+          <a href="#" data-instagram target="_blank" rel="noopener">@gaiabolivia</a>
+        </div>
+        <div class="ix-insta-grid">
+          <a href="#" data-instagram target="_blank" rel="noopener" class="ix-insta-item">
+            <img loading="lazy" src="https://placehold.co/400x400/c78271/ffffff?text=Gaia" alt="Instagram Gaia Bolivia 1">
+            <div class="ix-insta-overlay"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
+          </a>
+          <a href="#" data-instagram target="_blank" rel="noopener" class="ix-insta-item">
+            <img loading="lazy" src="https://placehold.co/400x400/e8b4a6/ffffff?text=Gaia" alt="Instagram Gaia Bolivia 2">
+            <div class="ix-insta-overlay"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
+          </a>
+          <a href="#" data-instagram target="_blank" rel="noopener" class="ix-insta-item">
+            <img loading="lazy" src="https://placehold.co/400x400/a5604f/ffffff?text=Gaia" alt="Instagram Gaia Bolivia 3">
+            <div class="ix-insta-overlay"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
+          </a>
+          <a href="#" data-instagram target="_blank" rel="noopener" class="ix-insta-item">
+            <img loading="lazy" src="https://placehold.co/400x400/f0e0db/c78271?text=Gaia" alt="Instagram Gaia Bolivia 4">
+            <div class="ix-insta-overlay"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
+          </a>
+          <a href="#" data-instagram target="_blank" rel="noopener" class="ix-insta-item">
+            <img loading="lazy" src="https://placehold.co/400x400/c78271/fdf8f6?text=Gaia" alt="Instagram Gaia Bolivia 5">
+            <div class="ix-insta-overlay"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
+          </a>
+          <a href="#" data-instagram target="_blank" rel="noopener" class="ix-insta-item">
+            <img loading="lazy" src="https://placehold.co/400x400/e8b4a6/2d2d2d?text=Gaia" alt="Instagram Gaia Bolivia 6">
+            <div class="ix-insta-overlay"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
+          </a>
+        </div>
       </div>
     </section>
 
   </main>
 
-  <!-- ══ SECCIÓN 5 — Footer ════════════════════════════════════════════ -->
-  <footer class="footer">
-    <div class="container">
-      <div class="footer__grid">
+  <!-- ── FOOTER ─────────────────────────────────────────────────────────── -->
+  <footer class="site-footer">
+    <div class="footer-inner">
 
-        <!-- Marca -->
-        <div class="footer__brand">
-          <span class="navbar__logo-text">
-            Gaia <span style="color:var(--color-primary)">Bolivia</span>
-          </span>
-          <p>Productos de belleza natural boliviana. Cuidamos tu piel con el poder de la naturaleza.</p>
-          <div class="footer__social">
-            <a href="#" data-instagram aria-label="Instagram">📸</a>
-            <a href="#" data-tiktok   aria-label="TikTok">🎵</a>
-            <a href="#" data-facebook aria-label="Facebook">👍</a>
-          </div>
+      <div class="footer-brand">
+        <img src="img/logo.svg" alt="Gaia Bolivia" style="height:44px;width:auto;display:block;margin-bottom:14px;filter:brightness(10)"
+             onerror="this.onerror=null;this.src='img/logo.svg';this.style.filter='brightness(10)'">
+        <p class="footer-tagline">Moda femenina con estilo y elegancia. Vestidos, blusas y más, diseñados para la mujer boliviana moderna.</p>
+        <div class="footer-social">
+          <a href="#" data-instagram aria-label="Instagram">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+              <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+            </svg>
+          </a>
+          <a href="#" data-facebook aria-label="Facebook">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/>
+            </svg>
+          </a>
+          <a href="#" data-tiktok aria-label="TikTok">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M9 12a4 4 0 104 4V4a5 5 0 005 5"/>
+            </svg>
+          </a>
         </div>
-
-        <!-- Links: Tienda / Nosotros -->
-        <div>
-          <p class="footer__heading">Tienda</p>
-          <ul class="footer__links">
-            <li><a href="tienda.html">Todos los productos</a></li>
-            <li><a href="carrito.html">Mi carrito</a></li>
-          </ul>
-          <p class="footer__heading" style="margin-top:1.5rem">Nosotros</p>
-          <ul class="footer__links">
-            <li><a href="index.html">Inicio</a></li>
-          </ul>
-        </div>
-
-        <!-- Contacto -->
-        <div>
-          <p class="footer__heading">Contacto</p>
-          <ul class="footer__links">
-            <li><a href="#" data-whatsapp>💬 WhatsApp</a></li>
-            <li><a href="#" data-instagram>📸 Instagram</a></li>
-            <li><a href="#" data-tiktok>🎵 TikTok</a></li>
-            <li><a href="#" data-facebook>👍 Facebook</a></li>
-          </ul>
-        </div>
-
       </div>
-      <div class="footer__bottom">
-        <span>© 2025 Gaia Bolivia Beauty. Todos los derechos reservados.</span>
-        <span>Hecho con ♥ en Bolivia</span>
+
+      <div class="footer-links">
+        <h5>Páginas</h5>
+        <ul>
+          <li><a href="index.html">Inicio</a></li>
+          <li><a href="tienda.html">Tienda</a></li>
+          <li><a href="nosotros.html">Nosotros</a></li>
+          <li><a href="contacto.html">Contacto</a></li>
+          <li><a href="carrito.html">Mi Carrito</a></li>
+        </ul>
       </div>
+
+      <div class="footer-links">
+        <h5>Categorías</h5>
+        <ul>
+          <li><a href="tienda.html?category=vestidos">Vestidos</a></li>
+          <li><a href="tienda.html?category=blusas">Blusas &amp; Tops</a></li>
+          <li><a href="tienda.html?category=pantalones">Pantalones</a></li>
+          <li><a href="tienda.html?category=faldas">Faldas</a></li>
+          <li><a href="tienda.html?category=accesorios">Accesorios</a></li>
+          <li><a href="tienda.html?sale=true">Sale</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2025 Gaia Bolivia · Todos los derechos reservados</span>
+      <span>Santa Cruz de la Sierra, Bolivia &nbsp;·&nbsp;
+        <a href="#" data-whatsapp>WhatsApp</a>
+      </span>
     </div>
   </footer>
 
-  <!-- ── WhatsApp botón flotante (FAB) ── -->
+  <!-- ── WHATSAPP FAB ────────────────────────────────────────────────────── -->
   <a class="whatsapp-fab" href="#" data-whatsapp
-    aria-label="Contactar por WhatsApp" title="WhatsApp">
-    💬
+     aria-label="Contactar por WhatsApp" title="WhatsApp">
+    <svg style="width:28px;height:28px;fill:#fff" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.554 4.122 1.523 5.854L.057 23.142a.5.5 0 00.611.612l5.288-1.467A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.677-.523-5.193-1.43l-.371-.22-3.838 1.065 1.064-3.837-.241-.385A9.955 9.955 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+    </svg>
   </a>
+
+  <!-- Hook oculto para app.js (descripción de tienda + datos de contacto) -->
+  <span id="store-description" style="display:none"></span>
 
   <script src="js/api.js"></script>
   <script src="js/cart.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/animations.js"></script>
+
+  <script>
+    // ── Slider de testimonios ─────────────────────────────────────────────
+    (function () {
+      var slides  = document.getElementById('ix-slides');
+      var dots    = document.querySelectorAll('#ix-dots .ix-dot');
+      var prevBtn = document.getElementById('slide-prev');
+      var nextBtn = document.getElementById('slide-next');
+      var total   = dots.length;
+      var current = 0;
+      var timer;
+
+      function goTo(idx) {
+        current = (idx + total) % total;
+        slides.style.transform = 'translateX(-' + (current * 100) + '%)';
+        dots.forEach(function (d, i) { d.classList.toggle('active', i === current); });
+      }
+      function startAuto() { timer = setInterval(function () { goTo(current + 1); }, 5000); }
+      function resetAuto() { clearInterval(timer); startAuto(); }
+
+      if (prevBtn) prevBtn.addEventListener('click', function () { goTo(current - 1); resetAuto(); });
+      if (nextBtn) nextBtn.addEventListener('click', function () { goTo(current + 1); resetAuto(); });
+      dots.forEach(function (d) {
+        d.addEventListener('click', function () {
+          goTo(parseInt(d.dataset.slide, 10)); resetAuto();
+        });
+      });
+      startAuto();
+    })();
+  </script>
+
 </body>
 </html>
