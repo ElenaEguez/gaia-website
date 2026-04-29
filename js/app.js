@@ -1,39 +1,51 @@
 /**
  * app.js — Inicialización por página y lógica de UI compartida
+ * Gaia Bolivia
  */
+
+// ── Cache de productos para addToCart desde cards ─────────────────────────────
+var _productCache = new Map();
 
 // ── Navbar ─────────────────────────────────────────────────────────────────────
 
 function initNavbar() {
-  // Badge del carrito
-  const badge = document.querySelector('#cart-badge');
-  if (badge) {
-    badge.textContent = GaiaCart.getCount();
-    badge.style.display = GaiaCart.getCount() ? 'flex' : 'none';
+  // Cart count — nuevo header (#cart-count) y viejo (#cart-badge)
+  var cartCount = document.querySelector('#cart-count');
+  var badge     = document.querySelector('#cart-badge');
+
+  function updateCartUI(n) {
+    if (cartCount) {
+      cartCount.textContent  = n;
+      cartCount.dataset.count = n;
+    }
+    if (badge) {
+      badge.textContent   = n;
+      badge.style.display = n > 0 ? 'flex' : 'none';
+    }
   }
 
-  window.addEventListener('cart:updated', (e) => {
-    if (!badge) return;
-    badge.textContent = e.detail;
-    badge.style.display = e.detail > 0 ? 'flex' : 'none';
+  updateCartUI(GaiaCart.getCount());
+
+  window.addEventListener('cart:updated', function (e) {
+    updateCartUI(e.detail);
   });
 
-  // Hamburger
-  const hamburger = document.querySelector('.hamburger');
-  const mobileNav = document.querySelector('.mobile-nav');
+  // Hamburger (viejo header — carrito/checkout pages)
+  var hamburger = document.querySelector('.hamburger');
+  var mobileNav = document.querySelector('.mobile-nav');
   if (hamburger && mobileNav) {
-    hamburger.addEventListener('click', () => {
-      const open = mobileNav.classList.toggle('open');
+    hamburger.addEventListener('click', function () {
+      var open = mobileNav.classList.toggle('open');
       hamburger.classList.toggle('open', open);
       hamburger.setAttribute('aria-expanded', open);
     });
   }
 
   // Marcar enlace activo
-  const current = location.pathname.split('/').pop() || 'index.html';
-  document.querySelectorAll('.navbar__nav a, .mobile-nav a').forEach(a => {
-    const href = a.getAttribute('href');
-    if (href === current || (current === '' && href === 'index.html')) {
+  var current = location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.navbar__nav a, .mobile-nav a, .nav-link').forEach(function (a) {
+    var href = a.getAttribute('href');
+    if (href && (href === current || (current === '' && href === 'index.html'))) {
       a.classList.add('active');
     }
   });
@@ -41,30 +53,28 @@ function initNavbar() {
 
 // ── Toast ──────────────────────────────────────────────────────────────────────
 
-function showToast(message, type = 'default', duration = 3000) {
-  let el = document.querySelector('.toast');
+function showToast(message, type, duration) {
+  type     = type     || 'default';
+  duration = duration || 3000;
+  var el = document.querySelector('.toast');
   if (!el) {
     el = document.createElement('div');
     el.className = 'toast';
     document.body.appendChild(el);
   }
   el.textContent = message;
-  el.className = `toast ${type}`;
-
-  // force reflow
+  el.className   = 'toast ' + type;
   void el.offsetWidth;
   el.classList.add('show');
-
   clearTimeout(el._timer);
-  el._timer = setTimeout(() => el.classList.remove('show'), duration);
+  el._timer = setTimeout(function () { el.classList.remove('show'); }, duration);
 }
-
 window.showToast = showToast;
 
 // ── Utilidades ─────────────────────────────────────────────────────────────────
 
 function formatPrice(amount) {
-  return `Bs. ${parseFloat(amount).toFixed(2)}`;
+  return 'Bs. ' + parseFloat(amount).toFixed(2);
 }
 window.formatPrice = formatPrice;
 
@@ -73,282 +83,398 @@ function getParam(key) {
 }
 window.getParam = getParam;
 
-/** Reemplaza src de img por placeholder si hay error de carga */
 function handleImgError(img) {
   img.onerror = null;
-  img.src = `https://placehold.co/400x400/e8d5b0/9e7d4a?text=Gaia`;
+  img.src = 'https://placehold.co/600x800/faf7f5/c78271?text=GAIA';
 }
 window.handleImgError = handleImgError;
 
 function imgSrc(imgObj) {
-  return imgObj?.image || null;
+  return imgObj ? (imgObj.image || null) : null;
 }
 window.imgSrc = imgSrc;
 
-// ── Inicializadores por página ─────────────────────────────────────────────────
+// ── Color helpers ──────────────────────────────────────────────────────────────
 
-/** HOME (index.html) */
-async function initHome() {
-  // ── Skeletons para productos ──────────────────────────────────────────────
-  const prodGrid = document.querySelector('#featured-products');
-  if (prodGrid) {
-    prodGrid.innerHTML = Array(4).fill(0).map(() => `
-      <div class="skeleton-card">
-        <div class="skeleton skeleton-img"></div>
-        <div class="skeleton-body">
-          <div class="skeleton skeleton-line"></div>
-          <div class="skeleton skeleton-line short"></div>
-          <div class="skeleton skeleton-line price"></div>
-        </div>
-      </div>`).join('');
+function getColorFallback(name) {
+  name = (name || '').toLowerCase().trim();
+  var map = {
+    'negro': '#111111', 'black': '#111111',
+    'blanco': '#f5f5f0', 'white': '#f5f5f0',
+    'rojo': '#c0392b',
+    'bordó': '#6d1a2a', 'bordo': '#6d1a2a', 'vino': '#722f37',
+    'nude': '#c9a882', 'beige': '#d4b896',
+    'camel': '#c19a6b', 'marrón': '#795548', 'marron': '#795548', 'cafe': '#795548',
+    'rosa': '#e8b4b8', 'fucsia': '#c71585', 'rosado': '#f48fb1', 'pink': '#f48fb1',
+    'verde': '#2d6a4f', 'verde botella': '#2d5a27',
+    'azul': '#1a3a5c', 'azul marino': '#001f3f', 'celeste': '#4fc3f7',
+    'gris': '#888888', 'plata': '#aaaaaa', 'plateado': '#9e9e9e', 'silver': '#9e9e9e',
+    'dorado': '#c9a84c', 'gold': '#c9a84c',
+    'animal print': '#8b6914', 'leopardo': '#8b6914',
+    'naranja': '#fb8c00', 'orange': '#fb8c00',
+    'morado': '#8e24aa', 'violeta': '#7b1fa2', 'lila': '#ba68c8',
+    'turquesa': '#00acc1', 'teal': '#00897b',
+    'coral': '#ff7043',
+    'amarillo': '#fdd835', 'yellow': '#fdd835',
+  };
+  return map[name] || '#c78271';
+}
+window.getColorFallback = getColorFallback;
+
+// Alias legacy
+function colorNameToHex(name) { return getColorFallback(name); }
+window.colorNameToHex = colorNameToHex;
+
+// ── RENDER PRODUCT CARD (nuevo diseño editorial) ───────────────────────────────
+
+function renderProductCard(product) {
+  // Cache para addToCart
+  _productCache.set(product.id, product);
+  _productCache.set(String(product.id), product);
+
+  var images   = product.images || [];
+  var variants = product.variants || [];
+  var mainImg  = (images[0] && (images[0].image || images[0].url)) || '';
+  var hoverImg = (images[1] && (images[1].image || images[1].url)) || '';
+
+  var price = parseFloat(product.price || 0).toLocaleString('es-BO', {
+    minimumFractionDigits: 2, maximumFractionDigits: 2
+  });
+
+  // Colores únicos desde variantes
+  var colorNames = [];
+  var seen = {};
+  variants.forEach(function (v) {
+    var c = v.color || v.variant_value;
+    if (c && !seen[c]) { seen[c] = true; colorNames.push(c); }
+  });
+
+  var swatchesHtml = '';
+  if (colorNames.length > 0) {
+    var shown = colorNames.slice(0, 4).map(function (c) {
+      return '<span class="swatch" style="background-color:' + getColorFallback(c) +
+             '" title="' + c + '" data-color="' + c + '"></span>';
+    }).join('');
+    var extra = colorNames.length > 4
+      ? '<span class="swatch-more">+' + (colorNames.length - 4) + '</span>'
+      : '';
+    swatchesHtml = '<div class="product-card__colors">' + shown + extra + '</div>';
   }
 
-  // ── Info de la tienda ─────────────────────────────────────────────────────
+  var hoverImgHtml = hoverImg
+    ? '<img class="product-card__img-hover" src="' + hoverImg + '" alt="' + product.name + '" loading="lazy">'
+    : '';
+
+  var hasVariants = variants.length > 0;
+
+  return '<article class="product-card" data-id="' + product.id + '">' +
+    '<div class="product-card__img-wrap">' +
+      (mainImg
+        ? '<img class="product-card__img" src="' + mainImg + '" alt="' + product.name + '" loading="lazy" onerror="handleImgError(this)">'
+        : '<img class="product-card__img" src="https://placehold.co/600x800/faf7f5/c78271?text=GAIA" alt="' + product.name + '">') +
+      hoverImgHtml +
+      '<div class="product-card__overlay">' +
+        '<button class="btn-add-cart" onclick="addToCart(event,' + product.id + ',' + hasVariants + ')">' +
+          (hasVariants ? 'Ver opciones' : 'Añadir al carrito') +
+        '</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="product-card__info">' +
+      '<a href="producto.html?id=' + product.id + '" style="text-decoration:none">' +
+        '<h3 class="product-card__name">' + product.name + '</h3>' +
+        '<p class="product-card__price">Bs. ' + price + '</p>' +
+      '</a>' +
+      swatchesHtml +
+    '</div>' +
+  '</article>';
+}
+
+// ── addToCart desde overlay de card ───────────────────────────────────────────
+
+window.addToCart = function (event, productId, hasVariants) {
+  if (event) event.stopPropagation();
+
+  if (hasVariants) {
+    window.location.href = 'producto.html?id=' + productId;
+    return;
+  }
+
+  var product = _productCache.get(productId) || _productCache.get(String(productId));
+  if (!product) {
+    window.location.href = 'producto.html?id=' + productId;
+    return;
+  }
+
+  GaiaCart.addItem(product, null, 1);
+  showToast(product.name + ' añadido al carrito', 'success');
+};
+
+// ── quickAddToCart (legacy) ────────────────────────────────────────────────────
+
+function quickAddToCart(id, name, price, img) {
+  GaiaCart.addItem({ id: id, name: name, price: price, images: img ? [{ image: img }] : [] }, null, 1);
+  showToast(name + ' añadido al carrito', 'success');
+}
+window.quickAddToCart = quickAddToCart;
+
+// ── HOME (index.html) ──────────────────────────────────────────────────────────
+
+async function initHome() {
+  var featuredGrid = document.querySelector('#featured-products');
+  var latestGrid   = document.querySelector('#latest-products');
+  var catsVisual   = document.querySelector('#categories-visual');
+
+  // Skeletons
+  function skeletons(grid, n) {
+    if (!grid) return;
+    grid.innerHTML = Array(n || 8).fill('<div class="product-skeleton"></div>').join('');
+  }
+  skeletons(featuredGrid, 8);
+  skeletons(latestGrid, 4);
+
+  // Info de la tienda
   try {
-    const store = await GaiaAPI.getStore();
-
-    const descEl = document.querySelector('#store-description');
-    if (descEl && store.description) descEl.textContent = store.description;
-
+    var store = await GaiaAPI.getStore();
+    window._storeCache = store;
     if (store.whatsapp) {
-      const waUrl = `https://wa.me/${store.whatsapp.replace(/\D/g, '')}`;
-      document.querySelectorAll('[data-whatsapp]').forEach(b => { b.href = waUrl; });
-
-      // Mostrar FAB y botón del banner
-      const fab = document.querySelector('.whatsapp-fab');
+      var wa = 'https://wa.me/' + store.whatsapp.replace(/\D/g, '');
+      document.querySelectorAll('[data-whatsapp]').forEach(function (b) { b.href = wa; });
+      var fab = document.querySelector('.whatsapp-fab');
       if (fab) fab.style.display = 'flex';
+    }
+    if (store.instagram) document.querySelectorAll('[data-instagram]').forEach(function (a) { a.href = store.instagram; });
+    if (store.facebook)  document.querySelectorAll('[data-facebook]').forEach(function (a) { a.href = store.facebook; });
+    if (store.tiktok)    document.querySelectorAll('[data-tiktok]').forEach(function (a) { a.href = store.tiktok; });
+  } catch (_) {}
 
-      const promoWa = document.querySelector('#promo-whatsapp');
-      if (promoWa) promoWa.style.display = 'inline-flex';
-    }
-
-    // Redes sociales
-    if (store.instagram) {
-      document.querySelectorAll('[data-instagram]').forEach(a => { a.href = store.instagram; });
-    }
-    if (store.facebook) {
-      document.querySelectorAll('[data-facebook]').forEach(a => { a.href = store.facebook; });
-    }
-    if (store.tiktok) {
-      document.querySelectorAll('[data-tiktok]').forEach(a => { a.href = store.tiktok; });
+  // Categorías visuales
+  try {
+    var cats = await GaiaAPI.getCategories();
+    if (catsVisual) {
+      catsVisual.innerHTML = cats.length
+        ? cats.slice(0, 3).map(function (c) {
+            var bg = 'var(--color-bg-soft)';
+            return '<a href="tienda.html?category=' + c.id + '" class="cat-visual-card">' +
+              '<div class="cat-visual-card__overlay"></div>' +
+              '<span class="cat-visual-card__label">' + c.name + '</span>' +
+            '</a>';
+          }).join('')
+        : '';
     }
   } catch (_) {}
 
-  // ── Categorías destacadas ─────────────────────────────────────────────────
-  const catGrid = document.querySelector('#categories-grid');
+  // Productos destacados (primeros 8 de la primera página)
   try {
-    const cats = await GaiaAPI.getCategories();
-    if (catGrid) {
-      if (cats.length) {
-        catGrid.innerHTML = cats.slice(0, 4).map(c => `
-          <a href="tienda.html?category=${c.id}" class="category-card">
-            <div class="category-card__icon">${categoryIcon(c.name)}</div>
-            <p class="category-card__name">${c.name}</p>
-          </a>`).join('');
-      } else {
-        catGrid.innerHTML = '<p class="text-center" style="grid-column:1/-1;color:var(--text-light)">Sin categorías disponibles.</p>';
-      }
+    var data = await GaiaAPI.getProducts({ page: 1 });
+    var results = data.results || [];
+    if (featuredGrid) {
+      featuredGrid.innerHTML = results.length
+        ? results.slice(0, 8).map(renderProductCard).join('')
+        : '<div class="empty-state" style="grid-column:1/-1"><div class="empty-state__icon">🌿</div><p>No hay productos disponibles aún.</p></div>';
+      if (results.length && window.animateCards) animateCards('#featured-products');
     }
-  } catch (_) {
-    if (catGrid) catGrid.innerHTML = '<p class="text-center" style="grid-column:1/-1;color:var(--text-light)">No se pudieron cargar las categorías.</p>';
+  } catch (e) {
+    if (featuredGrid) featuredGrid.innerHTML =
+      '<div class="empty-state" style="grid-column:1/-1"><div class="empty-state__icon">⚠️</div>' +
+      '<p>No se pudieron cargar los productos.<br><small>' + (e.message || '') + '</small></p></div>';
   }
 
-  // ── Productos destacados ──────────────────────────────────────────────────
+  // Últimas novedades (ordering por -id, últimos 4)
   try {
-    const data = await GaiaAPI.getProducts({ page: 1 });
-    if (prodGrid && data.results) {
-      prodGrid.innerHTML = data.results.length
-        ? data.results.slice(0, 4).map(renderProductCard).join('')
-        : '<p class="text-center" style="color:var(--text-light)">No hay productos disponibles aún.</p>';
+    var latest = await GaiaAPI.getProducts({ ordering: '-id', page: 1 });
+    var latestResults = latest.results || [];
+    if (latestGrid) {
+      latestGrid.innerHTML = latestResults.length
+        ? latestResults.slice(0, 4).map(renderProductCard).join('')
+        : '';
+      if (latestResults.length && window.animateCards) animateCards('#latest-products');
     }
   } catch (_) {
-    if (prodGrid) prodGrid.innerHTML = '<p class="text-center" style="color:var(--text-light)">No se pudieron cargar los productos.</p>';
+    if (latestGrid) latestGrid.innerHTML = '';
   }
 }
 
-/** Devuelve un emoji representativo según el nombre de la categoría */
-function categoryIcon(name) {
-  const n = (name || '').toLowerCase();
-  if (n.includes('crema') || n.includes('hidrat'))   return '🧴';
-  if (n.includes('labial') || n.includes('labios'))  return '💄';
-  if (n.includes('cabello') || n.includes('pelo'))   return '💇';
-  if (n.includes('facial') || n.includes('rostro'))  return '✨';
-  if (n.includes('perfume') || n.includes('aroma'))  return '🌸';
-  if (n.includes('ojos') || n.includes('maquillaje'))return '👁️';
-  if (n.includes('uña') || n.includes('esmalte'))    return '💅';
-  if (n.includes('cuerpo') || n.includes('body'))    return '🛁';
-  if (n.includes('natural') || n.includes('planta')) return '🌿';
-  if (n.includes('solar') || n.includes('protec'))   return '☀️';
-  return '🌟';
-}
+// ── TIENDA (tienda.html) ───────────────────────────────────────────────────────
 
-/** TIENDA (tienda.html) */
 async function initTienda() {
-  const grid         = document.querySelector('#products-grid');
-  const catList      = document.querySelector('#category-list');
-  const searchInput  = document.querySelector('#search-input');
-  const countEl      = document.querySelector('#products-count');
-  const paginationEl = document.querySelector('#pagination');
-  const sortSelect   = document.querySelector('#sort-select');
-  const clearBtn     = document.querySelector('#clear-filters');
-  const breadcrumbCat= document.querySelector('#breadcrumb-cat');
-  const catSep       = document.querySelector('#cat-sep');
-  const filterToggle = document.querySelector('#filter-toggle');
-  const sidebarCard  = document.querySelector('#sidebar-card');
+  var grid       = document.querySelector('#products-grid');
+  var catList    = document.querySelector('#filter-categories');
+  var countEl    = document.querySelector('#product-count');
+  var paginEl    = document.querySelector('#pagination');
+  var sortSelect = document.querySelector('#sort-select');
+  var clearBtn   = document.querySelector('#btn-clear-filters');
+  var filterToggle = document.querySelector('#filter-toggle');
+  var filterPanel  = document.querySelector('#filter-panel');
+  var activeFiltersEl = document.querySelector('#active-filters');
 
-  let currentPage     = parseInt(getParam('page'))    || 1;
-  let currentCategory = getParam('category')          || '';
-  let currentSearch   = getParam('search')            || '';
-  let currentOrdering = getParam('ordering')          || '';
-  let _allCats        = [];
+  var currentPage     = parseInt(getParam('page'))    || 1;
+  var currentCategory = getParam('category')          || '';
+  var currentSearch   = getParam('search')            || '';
+  var currentOrdering = getParam('ordering')          || '';
+  var _allCats        = [];
+  function _slugifyCategory(v) {
+    return (v || '')
+      .toString()
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/&/g, ' y ')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+  function _resolveCategoryId(raw, cats) {
+    if (!raw) return '';
+    if (/^\d+$/.test(String(raw))) return String(raw);
+    var candidate = _slugifyCategory(raw);
+    var found = (cats || []).find(function (c) {
+      return _slugifyCategory(c.name) === candidate;
+    });
+    return found ? String(found.id) : '';
+  }
 
-  if (searchInput && currentSearch)   searchInput.value  = currentSearch;
-  if (sortSelect  && currentOrdering) sortSelect.value   = currentOrdering;
+  if (sortSelect && currentOrdering) sortSelect.value = currentOrdering;
 
-  // Mobile sidebar toggle
-  if (filterToggle && sidebarCard) {
-    filterToggle.addEventListener('click', () => {
-      const open = sidebarCard.classList.toggle('open');
-      filterToggle.classList.toggle('open', open);
-      filterToggle.setAttribute('aria-expanded', open);
+  // Mobile filter toggle
+  if (filterToggle && filterPanel) {
+    filterToggle.addEventListener('click', function () {
+      filterPanel.classList.toggle('open');
     });
   }
 
   function syncUrl() {
-    const p = new URLSearchParams();
+    var p = new URLSearchParams();
     if (currentCategory) p.set('category', currentCategory);
     if (currentSearch)   p.set('search',   currentSearch);
     if (currentOrdering) p.set('ordering', currentOrdering);
     if (currentPage > 1) p.set('page',     currentPage);
-    const qs = p.toString();
-    history.replaceState({}, '', qs ? `?${qs}` : location.pathname);
+    var qs = p.toString();
+    history.replaceState({}, '', qs ? '?' + qs : location.pathname);
   }
 
-  function showSkeletons(n = 6) {
-    if (!grid) return;
-    grid.innerHTML = Array(n).fill(0).map(() => `
-      <div class="skeleton-card">
-        <div class="skeleton skeleton-img"></div>
-        <div class="skeleton-body">
-          <div class="skeleton skeleton-line"></div>
-          <div class="skeleton skeleton-line short"></div>
-          <div class="skeleton skeleton-line price"></div>
-          <div class="skeleton skeleton-btn"></div>
-        </div>
-      </div>`).join('');
-  }
-
-  function updateBreadcrumb() {
-    if (!breadcrumbCat || !catSep) return;
+  function renderActiveFilters() {
+    if (!activeFiltersEl) return;
+    var chips = [];
     if (currentCategory) {
-      const found = _allCats.find(c => c.id == currentCategory);
-      breadcrumbCat.textContent = found?.name || '';
-      catSep.style.display = '';
-    } else {
-      breadcrumbCat.textContent = '';
-      catSep.style.display = 'none';
+      var found = _allCats.find(function (c) { return c.id == currentCategory; });
+      if (found) {
+        chips.push('<span class="filter-chip">' + found.name +
+          '<button class="filter-chip-remove" onclick="clearCategory()">×</button></span>');
+      }
     }
+    if (currentSearch) {
+      chips.push('<span class="filter-chip">"' + currentSearch + '"' +
+        '<button class="filter-chip-remove" onclick="clearSearch()">×</button></span>');
+    }
+    activeFiltersEl.innerHTML = chips.join('');
+  }
+
+  window.clearCategory = function () {
+    currentCategory = ''; currentPage = 1;
+    if (catList) catList.querySelectorAll('li').forEach(function (li) { li.classList.remove('active'); });
+    if (catList) { var allLi = catList.querySelector('[data-cat-id=""]'); if (allLi) allLi.classList.add('active'); }
+    syncUrl(); renderActiveFilters(); loadProducts();
+  };
+  window.clearSearch = function () {
+    currentSearch = ''; currentPage = 1;
+    syncUrl(); renderActiveFilters(); loadProducts();
+  };
+
+  function showSkeletons(n) {
+    if (!grid) return;
+    grid.innerHTML = Array(n || 8).fill('<div class="product-skeleton"></div>').join('');
   }
 
   async function loadProducts() {
-    showSkeletons();
-    const orderMap = { price_asc: 'price', price_desc: '-price', '-id': '-id' };
-    const apiOrdering = orderMap[currentOrdering] || currentOrdering || undefined;
+    showSkeletons(8);
+    if (paginEl) paginEl.innerHTML = '';
+
+    var orderMap = { price_asc: 'price', price_desc: '-price', '-id': '-id', latest: '-id' };
+    var apiOrdering = orderMap[currentOrdering] || currentOrdering || undefined;
+    var categoryForApi = currentCategory;
+    if (categoryForApi && !/^\d+$/.test(String(categoryForApi))) {
+      categoryForApi = _resolveCategoryId(categoryForApi, _allCats);
+    }
 
     try {
-      const data = await GaiaAPI.getProducts({
+      var data = await GaiaAPI.getProducts({
         page:     currentPage,
-        category: currentCategory || undefined,
+        category: categoryForApi || undefined,
         search:   currentSearch   || undefined,
         ordering: apiOrdering,
       });
 
-      let results = data.results || [];
-      // Client-side sort fallback (affects current page only)
-      if (currentOrdering === 'price_asc')  results = [...results].sort((a, b) => a.price - b.price);
-      if (currentOrdering === 'price_desc') results = [...results].sort((a, b) => b.price - a.price);
-      if (currentOrdering === '-id')        results = [...results].sort((a, b) => b.id - a.id);
+      var results = data.results || [];
+      if (currentOrdering === 'price_asc')  results = results.slice().sort(function (a, b) { return a.price - b.price; });
+      if (currentOrdering === 'price_desc') results = results.slice().sort(function (a, b) { return b.price - a.price; });
 
       if (grid) {
         grid.innerHTML = results.length
           ? results.map(renderProductCard).join('')
-          : `<div class="empty-state" style="grid-column:1/-1">
-               <div class="empty-state__icon">🌿</div>
-               <h3>Sin resultados</h3>
-               <p>Prueba con otro término o categoría.</p>
-             </div>`;
+          : '<div class="empty-state" style="grid-column:1/-1"><div class="empty-state__icon">🌿</div><h3>Sin resultados</h3><p>Prueba con otro término o categoría.</p></div>';
+
+        if (results.length && window.animateCards) animateCards('#products-grid');
       }
 
       if (countEl) {
-        const from = (currentPage - 1) * 12 + 1;
-        const to   = (currentPage - 1) * 12 + results.length;
-        countEl.innerHTML = data.count
-          ? `Mostrando <strong>${from}–${to}</strong> de <strong>${data.count}</strong> producto${data.count !== 1 ? 's' : ''}`
+        countEl.textContent = data.count
+          ? (data.count + ' producto' + (data.count !== 1 ? 's' : ''))
           : '';
       }
 
-      renderPagination(paginationEl, data, currentPage, (p) => {
+      renderPagination(paginEl, data, currentPage, function (p) {
         currentPage = p;
         syncUrl();
         window.scrollTo({ top: 0, behavior: 'smooth' });
         loadProducts();
       });
     } catch (e) {
-      if (grid) grid.innerHTML = `
-        <div class="empty-state" style="grid-column:1/-1">
-          <div class="empty-state__icon">⚠️</div>
-          <h3>Error al cargar productos</h3>
-          <p>${e.message}</p>
-        </div>`;
+      if (grid) grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1">' +
+        '<div class="empty-state__icon">⚠️</div><h3>Error al cargar</h3>' +
+        '<p>' + (e.message || 'No se pudo conectar con el servidor') + '</p></div>';
     }
   }
 
   async function loadCategories() {
     try {
       _allCats = await GaiaAPI.getCategories();
+      if (currentCategory && !/^\d+$/.test(String(currentCategory))) {
+        var mapped = _resolveCategoryId(currentCategory, _allCats);
+        if (mapped) {
+          currentCategory = mapped;
+          syncUrl();
+        }
+      }
       if (!catList) return;
 
-      catList.innerHTML = `
-        <li><label><input type="radio" name="cat" value="" ${!currentCategory ? 'checked' : ''}> Todas</label></li>
-        ${_allCats.map(c => `
-          <li>
-            <label>
-              <input type="radio" name="cat" value="${c.id}" ${currentCategory == c.id ? 'checked' : ''}>
-              ${c.name}
-              ${c.product_count != null ? `<span class="cat-count">(${c.product_count})</span>` : ''}
-            </label>
-          </li>`).join('')}`;
+      catList.innerHTML =
+        '<li class="' + (!currentCategory ? 'active' : '') + '" data-cat-id="">' +
+          '<span>Todas las categorías</span>' +
+        '</li>' +
+        _allCats.map(function (c) {
+          return '<li class="' + (currentCategory == c.id ? 'active' : '') + '" data-cat-id="' + c.id + '">' +
+            '<span>' + c.name + '</span>' +
+            (c.product_count != null ? '<span class="cat-count" style="margin-left:auto;font-size:11px;color:var(--color-text-muted)">(' + c.product_count + ')</span>' : '') +
+          '</li>';
+        }).join('');
 
-      catList.addEventListener('change', e => {
-        if (e.target.name !== 'cat') return;
-        currentCategory = e.target.value;
+      catList.addEventListener('click', function (e) {
+        var li = e.target.closest('[data-cat-id]');
+        if (!li) return;
+        currentCategory = li.dataset.catId;
+        catList.querySelectorAll('li').forEach(function (l) { l.classList.remove('active'); });
+        li.classList.add('active');
         currentPage = 1;
-        updateBreadcrumb();
         syncUrl();
+        renderActiveFilters();
         loadProducts();
       });
 
-      updateBreadcrumb();
+      renderActiveFilters();
     } catch (_) {}
-  }
-
-  // Search
-  if (searchInput) {
-    let debounce;
-    searchInput.addEventListener('input', () => {
-      clearTimeout(debounce);
-      debounce = setTimeout(() => {
-        currentSearch = searchInput.value.trim();
-        currentPage = 1;
-        syncUrl();
-        loadProducts();
-      }, 380);
-    });
   }
 
   // Sort
   if (sortSelect) {
-    sortSelect.addEventListener('change', () => {
+    sortSelect.addEventListener('change', function () {
       currentOrdering = sortSelect.value;
       currentPage = 1;
       syncUrl();
@@ -356,21 +482,26 @@ async function initTienda() {
     });
   }
 
+  // Search from header (URL param already set)
+  if (currentSearch && countEl) {
+    renderActiveFilters();
+  }
+
   // Clear filters
   if (clearBtn) {
-    clearBtn.addEventListener('click', () => {
+    clearBtn.addEventListener('click', function () {
       currentCategory = '';
       currentSearch   = '';
       currentOrdering = '';
       currentPage     = 1;
-      if (searchInput) searchInput.value = '';
-      if (sortSelect)  sortSelect.value  = '';
+      if (sortSelect) sortSelect.value = '';
       if (catList) {
-        const allRadio = catList.querySelector('input[value=""]');
-        if (allRadio) allRadio.checked = true;
+        catList.querySelectorAll('li').forEach(function (l) { l.classList.remove('active'); });
+        var allLi = catList.querySelector('[data-cat-id=""]');
+        if (allLi) allLi.classList.add('active');
       }
-      updateBreadcrumb();
       syncUrl();
+      renderActiveFilters();
       loadProducts();
     });
   }
@@ -378,52 +509,364 @@ async function initTienda() {
   await Promise.all([loadCategories(), loadProducts()]);
 }
 
-/** PRODUCTO DETALLE (producto.html) */
+// ── PRODUCTO DETALLE (producto.html) ───────────────────────────────────────────
+
 async function initProducto() {
-  const id = getParam('id');
+  var id = getParam('id');
   if (!id) { location.href = 'tienda.html'; return; }
 
-  const container = document.querySelector('#product-detail');
+  var container = document.querySelector('#product-detail');
   if (!container) return;
-
   container.innerHTML = '<div class="spinner"></div>';
 
   try {
-    const p = await GaiaAPI.getProduct(id);
-    document.title = `${p.name} — Gaia Bolivia Beauty`;
-    const bc = document.querySelector('#breadcrumb-name');
-    if (bc) bc.textContent = p.name;
+    var p = await GaiaAPI.getProduct(id);
+    document.title = p.name + ' — Gaia Bolivia';
     renderProductDetail(p, container);
-    if (p.category?.id) loadRelatedProducts(p.category.id, p.id);
+    if (p.category && p.category.id) loadRelatedProducts(p.category.id, p.id);
   } catch (e) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state__icon">😕</div>
-        <h3>Producto no encontrado</h3>
-        <p>${e.message}</p>
-        <a href="tienda.html" class="btn btn-primary mt-3">Volver a la tienda</a>
-      </div>`;
+    container.innerHTML = '<div class="empty-state">' +
+      '<div class="empty-state__icon">😕</div>' +
+      '<h3>Producto no encontrado</h3>' +
+      '<p>' + e.message + '</p>' +
+      '<a href="tienda.html" class="btn-primary" style="margin-top:24px">Volver a la tienda</a>' +
+      '</div>';
   }
 }
 
-/** CARRITO (carrito.html) */
-function initCarrito() {
-  renderCartPage();
+// ── RENDER PRODUCT DETAIL (nuevo diseño) ───────────────────────────────────────
 
-  window.addEventListener('cart:updated', () => renderCartPage());
+function renderProductDetail(p, container) {
+  var imgs     = p.images || [];
+  var variants = p.variants || [];
+  var hasSizes  = variants.some(function (v) { return v.size; });
+  var hasColors = variants.some(function (v) { return v.color; });
+  var hasVars   = variants.length > 0;
+  var mainImg   = (imgs[0] && imgs[0].image) || 'https://placehold.co/600x900/faf7f5/c78271?text=GAIA';
+  var price     = parseFloat(p.price || 0).toLocaleString('es-BO', {
+    minimumFractionDigits: 2, maximumFractionDigits: 2
+  });
+
+  // Thumbnails
+  var thumbsHtml = imgs.map(function (im, i) {
+    return '<div class="gallery-thumb' + (i === 0 ? ' active' : '') + '" data-idx="' + i + '">' +
+      '<img src="' + im.image + '" alt="' + p.name + ' ' + (i + 1) + '" loading="lazy" onerror="handleImgError(this)">' +
+    '</div>';
+  }).join('');
+
+  // Color swatches
+  var colorHtml = '';
+  if (hasColors) {
+    var colorNames = [];
+    var seen = {};
+    variants.forEach(function (v) { if (v.color && !seen[v.color]) { seen[v.color] = true; colorNames.push(v.color); } });
+    colorHtml = '<div class="detail-option">' +
+      '<p class="option-label">COLOR: <strong id="selected-color-name"></strong></p>' +
+      '<div class="detail-swatches" id="color-swatches">' +
+        colorNames.map(function (c) {
+          return '<button class="swatch-detail" style="background-color:' + getColorFallback(c) + '"' +
+            ' data-color="' + c + '" title="' + c + '" onclick="selectDetailColor(\'' + c + '\',this)"></button>';
+        }).join('') +
+      '</div>' +
+    '</div>';
+  }
+
+  // Talle buttons
+  var talleHtml = '';
+  if (hasSizes) {
+    var sizes = [];
+    var sizeSeen = {};
+    variants.forEach(function (v) { if (v.size && !sizeSeen[v.size]) { sizeSeen[v.size] = true; sizes.push(v.size); } });
+    talleHtml = '<div class="detail-option">' +
+      '<p class="option-label">TALLE: <strong id="selected-talle-name"></strong></p>' +
+      '<div class="detail-talles" id="talle-options">' +
+        sizes.map(function (s) {
+          var inStock = variants.some(function (v) { return v.size === s && v.stock > 0; });
+          return '<button class="talle-btn' + (!inStock ? ' oos' : '') + '" data-size="' + s + '"' +
+            ' onclick="selectDetailSize(\'' + s + '\',this)">' + s + '</button>';
+        }).join('') +
+      '</div>' +
+    '</div>';
+  }
+
+  container.innerHTML =
+    '<div class="product-detail">' +
+
+      '<!-- Galería -->' +
+      '<div class="product-gallery">' +
+        '<div class="gallery-thumbs" id="gallery-thumbs">' + thumbsHtml + '</div>' +
+        '<div class="gallery-main" id="gallery-main">' +
+          '<img id="main-product-img" src="' + mainImg + '" alt="' + p.name + '" onerror="handleImgError(this)">' +
+          (imgs.length > 1 ? '<button class="gallery-prev" id="gallery-prev">&#8249;</button><button class="gallery-next" id="gallery-next">&#8250;</button>' : '') +
+        '</div>' +
+      '</div>' +
+
+      '<!-- Info -->' +
+      '<div class="product-info">' +
+        '<p class="product-category-label">' + (p.category ? p.category.name : '') + '</p>' +
+        '<h1 class="product-name">' + p.name + '</h1>' +
+        '<p class="product-price">Bs. ' + price + '</p>' +
+        colorHtml +
+        talleHtml +
+        '<div class="detail-option">' +
+          '<p class="option-label">CANTIDAD</p>' +
+          '<div class="qty-selector">' +
+            '<button class="qty-btn" onclick="changeDetailQty(-1)">−</button>' +
+            '<span class="qty-value" id="qty-value" data-max="999">1</span>' +
+            '<button class="qty-btn" onclick="changeDetailQty(1)">+</button>' +
+          '</div>' +
+        '</div>' +
+        '<button class="btn-add-to-cart-detail" id="add-to-cart-btn"' +
+          (hasVars ? ' disabled' : '') +
+          ' onclick="addDetailToCart()">' +
+          'Añadir al carrito' +
+        '</button>' +
+        (hasVars ? '<p style="font-size:12px;color:var(--color-text-muted);margin-top:4px;font-family:var(--font-sans)">Selecciona una opción para continuar</p>' : '') +
+        (p.description ? '<div class="product-description">' + p.description + '</div>' : '') +
+        '<a class="btn-whatsapp" href="#" id="btn-whatsapp-product" data-whatsapp target="_blank">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">' +
+            '<path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.124.554 4.122 1.524 5.854L.063 23.43l5.731-1.447A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-4.992-1.368l-.358-.213-3.706.936.988-3.606-.233-.371A9.817 9.817 0 012.182 12c0-5.421 4.397-9.818 9.818-9.818S21.818 6.579 21.818 12 17.421 21.818 12 21.818z"/>' +
+          '</svg>' +
+          'Consultar por WhatsApp' +
+        '</a>' +
+      '</div>' +
+
+    '</div>';
+
+  // Estado global
+  window._currentProduct  = p;
+  window._selectedVariant = null;
+  window._selectedSize    = null;
+  window._selectedColor   = null;
+  window._detailQty       = 1;
+  window._galleryIndex    = 0;
+
+  // Gallery thumbs
+  var thumbEls = container.querySelectorAll('.gallery-thumb');
+  thumbEls.forEach(function (thumb) {
+    thumb.addEventListener('click', function () {
+      var idx = parseInt(thumb.dataset.idx);
+      _switchGalleryImg(idx, imgs);
+    });
+  });
+
+  // Gallery prev/next
+  var prevBtn = container.querySelector('#gallery-prev');
+  var nextBtn = container.querySelector('#gallery-next');
+  if (prevBtn) prevBtn.addEventListener('click', function () {
+    window._galleryIndex = (window._galleryIndex - 1 + imgs.length) % imgs.length;
+    _switchGalleryImg(window._galleryIndex, imgs);
+  });
+  if (nextBtn) nextBtn.addEventListener('click', function () {
+    window._galleryIndex = (window._galleryIndex + 1) % imgs.length;
+    _switchGalleryImg(window._galleryIndex, imgs);
+  });
+
+  // WhatsApp product link
+  if (window._storeCache && window._storeCache.whatsapp) {
+    var wa = 'https://wa.me/' + window._storeCache.whatsapp.replace(/\D/g, '') +
+      '?text=' + encodeURIComponent('Hola! Me interesa: ' + p.name);
+    var waBtns = container.querySelectorAll('[data-whatsapp]');
+    waBtns.forEach(function (b) { b.href = wa; });
+  }
+
+  // Breadcrumb
+  var bcCat  = document.querySelector('#bc-category');
+  var bcProd = document.querySelector('#bc-product');
+  if (bcCat && p.category) {
+    bcCat.textContent = p.category.name;
+    bcCat.href = 'tienda.html?category=' + p.category.id;
+  }
+  if (bcProd) bcProd.textContent = p.name;
 }
 
-/** CHECKOUT (checkout.html) */
+function _switchGalleryImg(idx, imgs) {
+  if (!imgs[idx]) return;
+  window._galleryIndex = idx;
+  var mainImg = document.querySelector('#main-product-img');
+  if (mainImg) {
+    mainImg.style.opacity = '0';
+    setTimeout(function () {
+      mainImg.src = imgs[idx].image;
+      mainImg.style.opacity = '1';
+    }, 150);
+  }
+  document.querySelectorAll('.gallery-thumb').forEach(function (t, i) {
+    t.classList.toggle('active', i === idx);
+  });
+}
+
+// ── Selectores de variante detalle ────────────────────────────────────────────
+
+window.selectDetailColor = function (color, btn) {
+  document.querySelectorAll('.swatch-detail').forEach(function (s) { s.classList.remove('active'); });
+  btn.classList.add('active');
+  window._selectedColor = color;
+  var lbl = document.querySelector('#selected-color-name');
+  if (lbl) lbl.textContent = color;
+  _resolveVariant();
+};
+
+window.selectDetailSize = function (size, btn) {
+  document.querySelectorAll('.talle-btn').forEach(function (s) { s.classList.remove('active'); });
+  btn.classList.add('active');
+  window._selectedSize = size;
+  var lbl = document.querySelector('#selected-talle-name');
+  if (lbl) lbl.textContent = size;
+  _resolveVariant();
+};
+
+// Mantener aliases legacy
+window.selectVariantAttr = function (attr, val, btn) {
+  if (attr === 'size') window.selectDetailSize(val, btn);
+  else window.selectDetailColor(val, btn);
+};
+
+function _resolveVariant() {
+  var p = window._currentProduct;
+  if (!p || !p.variants || !p.variants.length) return;
+  var hasSizes  = p.variants.some(function (v) { return v.size; });
+  var hasColors = p.variants.some(function (v) { return v.color; });
+  var found = null;
+
+  if (hasSizes && hasColors) {
+    if (window._selectedSize && window._selectedColor) {
+      found = p.variants.find(function (v) {
+        return v.size === window._selectedSize && v.color === window._selectedColor;
+      });
+    }
+  } else if (hasSizes) {
+    found = window._selectedSize
+      ? p.variants.find(function (v) { return v.size === window._selectedSize; })
+      : null;
+  } else {
+    found = window._selectedColor
+      ? p.variants.find(function (v) { return v.color === window._selectedColor; })
+      : null;
+  }
+
+  window._selectedVariant = found ? { id: found.id, size: found.size, color: found.color } : null;
+  if (found) {
+    _applyVariantStock(found);
+  } else {
+    var addBtn = document.querySelector('#add-to-cart-btn');
+    if (addBtn) addBtn.disabled = true;
+  }
+}
+
+function _applyVariantStock(v) {
+  if (!v) return;
+  var inStock = v.stock > 0;
+  var addBtn  = document.querySelector('#add-to-cart-btn');
+  var qtyEl   = document.querySelector('#qty-value, #detail-qty');
+  if (addBtn) addBtn.disabled = !inStock;
+  if (qtyEl && inStock) {
+    window._detailQty  = 1;
+    qtyEl.textContent  = 1;
+    qtyEl.dataset.max  = v.stock;
+  }
+}
+
+window.changeDetailQty = function (delta) {
+  var el  = document.querySelector('#qty-value') || document.querySelector('#detail-qty');
+  var max = parseInt(el && el.dataset.max) || 999;
+  window._detailQty = Math.min(max, Math.max(1, (window._detailQty || 1) + delta));
+  if (el) el.textContent = window._detailQty;
+};
+
+window.addDetailToCart = function () {
+  var p = window._currentProduct;
+  if (!p) return;
+  GaiaCart.addItem(p, window._selectedVariant, window._detailQty || 1);
+  showToast(p.name + ' añadido al carrito', 'success');
+  var btn = document.querySelector('#add-to-cart-btn');
+  if (btn) {
+    var orig = btn.textContent;
+    btn.textContent = '✓ Añadido';
+    setTimeout(function () { btn.textContent = orig; }, 2000);
+  }
+};
+
+window.buyNow = function () {
+  var p = window._currentProduct;
+  if (!p) return;
+  GaiaCart.addItem(p, window._selectedVariant, window._detailQty || 1);
+  location.href = 'checkout.html';
+};
+
+// ── Relacionados ───────────────────────────────────────────────────────────────
+
+async function loadRelatedProducts(categoryId, excludeId) {
+  var section = document.querySelector('#related-section');
+  var relGrid = document.querySelector('#related-grid');
+  if (!section || !relGrid) return;
+  try {
+    var data    = await GaiaAPI.getProducts({ category: categoryId, page: 1 });
+    var related = (data.results || []).filter(function (pr) { return pr.id != excludeId; }).slice(0, 4);
+    if (!related.length) return;
+    section.style.display = '';
+    relGrid.innerHTML = related.map(renderProductCard).join('');
+    if (window.animateCards) animateCards('#related-grid');
+  } catch (_) {}
+}
+
+// ── Paginación ─────────────────────────────────────────────────────────────────
+
+function renderPagination(el, data, currentPage, onPageChange) {
+  if (!el) return;
+  window._paginationCb = onPageChange;
+  // Derivar tamaño de página del response real para evitar páginas faltantes
+  var results   = data.results || [];
+  var pageSize  = (data.next && results.length > 0) ? results.length : null;
+  var total     = pageSize
+    ? Math.ceil(data.count / pageSize)
+    : currentPage; // si estamos en última página, al menos currentPage
+  if (total <= 1) { el.innerHTML = ''; return; }
+
+  function pageRange(cur, tot) {
+    if (tot <= 7) return Array.from({ length: tot }, function (_, i) { return i + 1; });
+    if (cur <= 4)       return [1, 2, 3, 4, 5, '…', tot];
+    if (cur >= tot - 3) return [1, '…', tot-4, tot-3, tot-2, tot-1, tot];
+    return [1, '…', cur-1, cur, cur+1, '…', tot];
+  }
+
+  var pages = pageRange(currentPage, total);
+  var html  = '<div class="pagination">';
+  html += '<button class="page-btn" onclick="_paginationCb(' + (currentPage - 1) + ')"' +
+    (currentPage === 1 ? ' disabled' : '') + ' aria-label="Anterior">‹</button>';
+  pages.forEach(function (p) {
+    if (p === '…') {
+      html += '<span class="page-ellipsis">…</span>';
+    } else {
+      html += '<button class="page-btn' + (p === currentPage ? ' active' : '') + '"' +
+        ' onclick="_paginationCb(' + p + ')" aria-label="Página ' + p + '">' + p + '</button>';
+    }
+  });
+  html += '<button class="page-btn" onclick="_paginationCb(' + (currentPage + 1) + ')"' +
+    (currentPage === total ? ' disabled' : '') + ' aria-label="Siguiente">›</button>';
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ── CARRITO (carrito.html) ─────────────────────────────────────────────────────
+
+function initCarrito() {
+  renderCartPage();
+  window.addEventListener('cart:updated', function () { renderCartPage(); });
+}
+
+// ── CHECKOUT (checkout.html) ───────────────────────────────────────────────────
+
 async function initCheckout() {
-  const items = GaiaCart.getItems();
+  var items = GaiaCart.getItems();
   if (!items.length) { location.href = 'carrito.html'; return; }
 
   renderCheckoutSummary(items);
 
-  const form    = document.querySelector('#checkout-form');
+  var form = document.querySelector('#checkout-form');
   if (!form) return;
 
-  let storeData = null;
+  var storeData = null;
   try {
     storeData = await GaiaAPI.getStore();
     window._storeCache = storeData;
@@ -431,21 +874,19 @@ async function initCheckout() {
     storeData = window._storeCache || null;
   }
 
-  const panel1  = document.querySelector('#step-panel-1');
-  const panel2  = document.querySelector('#step-panel-2');
-  const btnNext = document.querySelector('#btn-next');
-  const btnBack = document.querySelector('#btn-back');
+  var panel1  = document.querySelector('#step-panel-1');
+  var panel2  = document.querySelector('#step-panel-2');
+  var btnNext = document.querySelector('#btn-next');
+  var btnBack = document.querySelector('#btn-back');
 
-  // ── Wizard navigation ─────────────────────────────────────────────────────
   if (btnNext) {
-    btnNext.addEventListener('click', () => {
+    btnNext.addEventListener('click', function () {
       if (!validateStep1(form)) return;
       panel1.style.display = 'none';
       panel2.style.display = '';
-      // Advance step indicator
-      const stepDatos = document.querySelector('#step-datos');
-      const stepPago  = document.querySelector('#step-pago');
-      const stepLine2 = document.querySelector('#step-line-2');
+      var stepDatos = document.querySelector('#step-datos');
+      var stepPago  = document.querySelector('#step-pago');
+      var stepLine2 = document.querySelector('#step-line-2');
       if (stepDatos) { stepDatos.classList.remove('active'); stepDatos.classList.add('done'); stepDatos.querySelector('.step__dot').textContent = '✓'; }
       if (stepLine2) stepLine2.classList.add('done');
       if (stepPago)  stepPago.classList.add('active');
@@ -454,12 +895,12 @@ async function initCheckout() {
   }
 
   if (btnBack) {
-    btnBack.addEventListener('click', () => {
+    btnBack.addEventListener('click', function () {
       panel2.style.display = 'none';
       panel1.style.display = '';
-      const stepDatos = document.querySelector('#step-datos');
-      const stepPago  = document.querySelector('#step-pago');
-      const stepLine2 = document.querySelector('#step-line-2');
+      var stepDatos = document.querySelector('#step-datos');
+      var stepPago  = document.querySelector('#step-pago');
+      var stepLine2 = document.querySelector('#step-line-2');
       if (stepDatos) { stepDatos.classList.add('active'); stepDatos.classList.remove('done'); stepDatos.querySelector('.step__dot').textContent = '2'; }
       if (stepLine2) stepLine2.classList.remove('done');
       if (stepPago)  stepPago.classList.remove('active');
@@ -467,69 +908,58 @@ async function initCheckout() {
     });
   }
 
-  // ── Delivery: show/hide address ───────────────────────────────────────────
-  form.querySelectorAll('input[name=delivery_method]').forEach(radio => {
-    radio.addEventListener('change', () => {
-      form.querySelectorAll('input[name=delivery_method]').forEach(r =>
-        r.closest('.delivery-card')?.classList.remove('selected'));
-      radio.closest('.delivery-card')?.classList.add('selected');
-      const ag = document.querySelector('#address-group');
+  form.querySelectorAll('input[name=delivery_method]').forEach(function (radio) {
+    radio.addEventListener('change', function () {
+      form.querySelectorAll('input[name=delivery_method]').forEach(function (r) {
+        if (r.closest) r.closest('.delivery-card') && r.closest('.delivery-card').classList.remove('selected');
+      });
+      radio.closest && radio.closest('.delivery-card') && radio.closest('.delivery-card').classList.add('selected');
+      var ag = document.querySelector('#address-group');
       if (ag) ag.classList.toggle('show', radio.value === 'delivery');
     });
   });
 
-  // ── Payment: highlight card + show QR preview ─────────────────────────────
-  form.querySelectorAll('input[name=payment_method]').forEach(radio => {
-    radio.addEventListener('change', () => {
-      form.querySelectorAll('input[name=payment_method]').forEach(r =>
-        r.closest('.payment-card')?.classList.remove('selected'));
-      radio.closest('.payment-card')?.classList.add('selected');
-
-      const qrPreview = document.querySelector('#payment-qr-preview');
-      const qrPreviewImg = document.querySelector('#qr-preview-img');
-      const qrInstructions = document.querySelector('#qr-preview-instructions');
-      const qrName    = document.querySelector('#qr-method-name');
-      const showQR = ['tigo_money', 'banco_union'].includes(radio.value);
-      if (qrPreview) {
-        qrPreview.style.display = showQR ? '' : 'none';
-      }
-      if (qrName) qrName.textContent = radio.value === 'tigo_money' ? 'Tigo Money' : 'Banco Unión';
-      const qrMethod = storeData?.payment_methods?.find(method => method.type === 'qr');
-      if (qrPreviewImg) {
-        qrPreviewImg.src = qrMethod?.qr_image || 'https://placehold.co/200x200/e8d5b0/9e7d4a?text=QR+Pago';
-      }
-      if (qrInstructions) {
-        qrInstructions.textContent = qrMethod?.instructions || 'El QR de pago definitivo se generará al confirmar tu pedido.';
-      }
+  form.querySelectorAll('input[name=payment_method]').forEach(function (radio) {
+    radio.addEventListener('change', function () {
+      form.querySelectorAll('input[name=payment_method]').forEach(function (r) {
+        if (r.closest) r.closest('.payment-card') && r.closest('.payment-card').classList.remove('selected');
+      });
+      radio.closest && radio.closest('.payment-card') && radio.closest('.payment-card').classList.add('selected');
+      var qrPreview      = document.querySelector('#payment-qr-preview');
+      var qrPreviewImg   = document.querySelector('#qr-preview-img');
+      var qrInstructions = document.querySelector('#qr-preview-instructions');
+      var qrName         = document.querySelector('#qr-method-name');
+      var showQR = ['tigo_money', 'banco_union'].includes(radio.value);
+      if (qrPreview) qrPreview.style.display = showQR ? '' : 'none';
+      if (qrName)    qrName.textContent = radio.value === 'tigo_money' ? 'Tigo Money' : 'Banco Unión';
+      var qrMethod = storeData && storeData.payment_methods && storeData.payment_methods.find(function (m) { return m.type === 'qr'; });
+      if (qrPreviewImg)   qrPreviewImg.src = (qrMethod && qrMethod.qr_image) || 'https://placehold.co/200x200/e8d5b0/9e7d4a?text=QR+Pago';
+      if (qrInstructions) qrInstructions.textContent = (qrMethod && qrMethod.instructions) || 'El QR de pago definitivo se generará al confirmar tu pedido.';
     });
   });
 
-  // ── Form submit ───────────────────────────────────────────────────────────
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', async function (e) {
     e.preventDefault();
     if (!validateCheckoutForm(form)) return;
-
-    const submitBtn = document.querySelector('#btn-submit');
+    var submitBtn = document.querySelector('#btn-submit');
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:.5rem"><span class="spinner" style="width:18px;height:18px;margin:0;border-width:2px;border-color:rgba(255,255,255,.3);border-top-color:#fff"></span> Procesando...</span>';
     }
-
-    const data = {
+    var data = {
       customer_name:    form.customer_name.value.trim(),
       customer_phone:   form.customer_phone.value.trim(),
-      customer_email:   form.customer_email?.value.trim() || '',
-      customer_address: form.customer_address?.value.trim() || '',
+      customer_email:   (form.customer_email && form.customer_email.value.trim()) || '',
+      customer_address: (form.customer_address && form.customer_address.value.trim()) || '',
       delivery_method:  form.delivery_method.value,
       payment_method:   form.payment_method.value,
-      notes:            form.notes?.value.trim() || '',
+      notes:            (form.notes && form.notes.value.trim()) || '',
       items:            GaiaCart.toCheckoutItems(),
     };
-
     try {
-      const order = await GaiaAPI.checkout(data);
+      var order = await GaiaAPI.checkout(data);
       GaiaCart.clearCart();
-      location.href = `confirmacion.html?order_id=${order.id}`;
+      location.href = 'confirmacion.html?order_id=' + order.id;
     } catch (err) {
       showToast(err.message, 'error', 5000);
       if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Confirmar Pedido →'; }
@@ -537,504 +967,107 @@ async function initCheckout() {
   });
 }
 
-/** CONFIRMACIÓN (confirmacion.html) */
+// ── CONFIRMACIÓN (confirmacion.html) ──────────────────────────────────────────
+
 async function initConfirmacion() {
-  const orderId = getParam('order_id');
+  var orderId = getParam('order_id');
   if (!orderId) { location.href = 'index.html'; return; }
-
-  const container = document.querySelector('#order-detail');
+  var container = document.querySelector('#order-detail');
   if (container) container.innerHTML = '<div class="spinner"></div>';
-
   try {
-    const order = await GaiaAPI.getOrder(orderId);
+    var order = await GaiaAPI.getOrder(orderId);
     renderOrderConfirmation(order, container);
     initReceiptUpload(orderId);
   } catch (e) {
-    if (container) container.innerHTML = `<p class="text-center">${e.message}</p>`;
+    if (container) container.innerHTML = '<p class="text-center">' + e.message + '</p>';
   }
 }
 
-// ── Render helpers ─────────────────────────────────────────────────────────────
-
-function renderProductCard(p) {
-  const img = p.images?.[0]?.image || null;
-  const hasVariants = p.variants?.length > 0;
-  return `
-    <article class="product-card" onclick="location.href='producto.html?id=${p.id}'"
-      role="button" aria-label="Ver ${p.name}">
-      <div class="product-card__img-wrap">
-        ${img
-          ? `<img src="${img}" alt="${p.name}" loading="lazy" onerror="handleImgError(this)">`
-          : `<img src="https://placehold.co/400x400/e8d5b0/9e7d4a?text=Gaia" alt="${p.name}">`}
-        ${p.category ? `<span class="product-card__badge">${p.category.name}</span>` : ''}
-      </div>
-      <div class="product-card__body">
-        ${p.category ? `<p class="product-card__category">${p.category.name}</p>` : ''}
-        <h3 class="product-card__name">${p.name}</h3>
-        <p class="product-card__price">${formatPrice(p.price)}${hasVariants ? ' <span>· Varias opciones</span>' : ''}</p>
-      </div>
-      <div class="product-card__footer">
-        <a href="producto.html?id=${p.id}" class="btn btn-primary btn-sm btn-full"
-          onclick="event.stopPropagation()">Ver producto</a>
-      </div>
-    </article>`;
-}
-
-function quickAddToCart(id, name, price, img) {
-  GaiaCart.addItem({ id, name, price, images: img ? [{ image: img }] : [] }, null, 1);
-  showToast(`${name} agregado al carrito`, 'success');
-}
-window.quickAddToCart = quickAddToCart;
-
-function renderPagination(el, data, currentPage, onPageChange) {
-  if (!el) return;
-  window._paginationCb = onPageChange;
-  const total = Math.ceil(data.count / 12);
-  if (total <= 1) { el.innerHTML = ''; return; }
-
-  function pageRange(cur, tot) {
-    if (tot <= 7) return Array.from({ length: tot }, (_, i) => i + 1);
-    if (cur <= 4)       return [1, 2, 3, 4, 5, '…', tot];
-    if (cur >= tot - 3) return [1, '…', tot-4, tot-3, tot-2, tot-1, tot];
-    return [1, '…', cur-1, cur, cur+1, '…', tot];
-  }
-
-  const pages = pageRange(currentPage, total);
-  let html = '<div class="pagination">';
-  html += `<button class="page-btn" onclick="_paginationCb(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} aria-label="Anterior">‹</button>`;
-  for (const p of pages) {
-    if (p === '…') {
-      html += '<span class="page-ellipsis">…</span>';
-    } else {
-      html += `<button class="page-btn${p === currentPage ? ' active' : ''}" onclick="_paginationCb(${p})" aria-label="Página ${p}">${p}</button>`;
-    }
-  }
-  html += `<button class="page-btn" onclick="_paginationCb(${currentPage + 1})" ${currentPage === total ? 'disabled' : ''} aria-label="Siguiente">›</button>`;
-  html += '</div>';
-  el.innerHTML = html;
-}
-
-function renderProductDetail(p, container) {
-  const imgs    = p.images || [];
-  const mainImg = imgs[0]?.image || null;
-  const variants = p.variants || [];
-
-  const hasSizes  = variants.some(v => v.size);
-  const hasColors = variants.some(v => v.color);
-  const hasVars   = variants.length > 0;
-
-  // Build variant selector HTML
-  let variantHtml = '';
-  if (hasVars) {
-    if (hasSizes) {
-      const sizes = [...new Set(variants.map(v => v.size).filter(Boolean))];
-      variantHtml += `
-        <div class="variant-group">
-          <p class="form-label" style="margin-bottom:.45rem">
-            Talla: <span id="v-size-label" style="color:var(--primary);font-weight:600"></span>
-          </p>
-          <div class="size-btns">
-            ${sizes.map(s => {
-              const inStock = variants.some(v => v.size === s && v.stock > 0);
-              return `<button class="size-btn${!inStock ? ' oos' : ''}"
-                data-attr="size" data-val="${s}"
-                onclick="selectVariantAttr('size','${s}',this)">${s}</button>`;
-            }).join('')}
-          </div>
-        </div>`;
-    }
-    if (hasColors) {
-      const colors = [...new Set(variants.map(v => v.color).filter(Boolean))];
-      variantHtml += `
-        <div class="variant-group">
-          <p class="form-label" style="margin-bottom:.45rem">
-            Color: <span id="v-color-label" style="color:var(--primary);font-weight:600"></span>
-          </p>
-          <div class="color-btns">
-            ${colors.map(c => `
-              <button class="color-btn" data-attr="color" data-val="${c}"
-                style="background:${colorNameToHex(c)}"
-                onclick="selectVariantAttr('color','${c}',this)"
-                title="${c}" aria-label="${c}"></button>`).join('')}
-          </div>
-        </div>`;
-    }
-    if (!hasSizes && !hasColors) {
-      variantHtml = `
-        <div class="variant-group">
-          <p class="form-label" style="margin-bottom:.45rem">Variante:</p>
-          <div class="variant-btns">
-            ${variants.map(v => `
-              <button class="pill" data-variant-id="${v.id}"
-                data-size="${v.size||''}" data-color="${v.color||''}"
-                onclick="selectVariant(this)">
-                ${[v.size, v.color].filter(Boolean).join(' / ') || `Opción ${v.id}`}
-                ${v.stock <= 0 ? ' <small style="color:#f44336">(sin stock)</small>' : ''}
-              </button>`).join('')}
-          </div>
-        </div>`;
-    }
-    variantHtml += `<p id="stock-info" style="display:none;font-size:.82rem;margin:.4rem 0 .75rem"></p>`;
-  }
-
-  container.innerHTML = `
-    <div class="product-detail">
-
-      <!-- ── Gallery ── -->
-      <div class="product-detail__gallery">
-        <div class="product-detail__main-img" onclick="zoomImg('${mainImg || ''}','${p.name}')">
-          <img id="main-product-img"
-            src="${mainImg || 'https://placehold.co/600x600/e8d5b0/9e7d4a?text=Gaia'}"
-            alt="${p.name}" onerror="handleImgError(this)">
-        </div>
-        ${imgs.length > 1 ? `
-          <div class="product-detail__thumbs">
-            ${imgs.map((im, i) => `
-              <img src="${im.image}" alt="${p.name} ${i+1}"
-                class="thumb${i === 0 ? ' active' : ''}"
-                onclick="switchImg('${im.image}', this)"
-                onerror="handleImgError(this)">`).join('')}
-          </div>` : ''}
-      </div>
-
-      <!-- ── Info ── -->
-      <div class="product-detail__info">
-        ${p.category ? `<span class="product-card__badge" style="position:static;display:inline-block;margin-bottom:.75rem">${p.category.name}</span>` : ''}
-        <h1 style="font-size:clamp(1.6rem,4vw,2.2rem);margin-bottom:.3rem">${p.name}</h1>
-        <p class="product-detail__price">${formatPrice(p.price)}</p>
-        ${p.description ? `<p class="product-detail__desc">${p.description}</p>` : ''}
-
-        ${variantHtml}
-
-        <!-- Cantidad -->
-        <div style="margin:1.25rem 0">
-          <p class="form-label" style="margin-bottom:.45rem">Cantidad:</p>
-          <div class="cart-item__qty">
-            <button class="qty-btn" onclick="changeDetailQty(-1)">−</button>
-            <span class="qty-value" id="detail-qty" data-max="999">1</span>
-            <button class="qty-btn" onclick="changeDetailQty(1)">+</button>
-          </div>
-        </div>
-
-        <!-- Acciones -->
-        <div style="display:flex;gap:.75rem;flex-wrap:wrap">
-          <button class="btn btn-primary btn-lg" id="add-to-cart-btn"
-            ${hasVars ? 'disabled' : ''}
-            onclick="addDetailToCart()">
-            🛒 Agregar al carrito
-          </button>
-          <button class="btn btn-secondary btn-lg" id="buy-now-btn"
-            ${hasVars ? 'disabled' : ''}
-            onclick="buyNow()">
-            Comprar ahora
-          </button>
-        </div>
-        ${hasVars ? '<p style="font-size:.78rem;color:var(--text-light);margin-top:.6rem">Selecciona una variante para continuar</p>' : ''}
-      </div>
-
-    </div>`;
-
-  window._currentProduct  = p;
-  window._selectedVariant = null;
-  window._selectedSize    = null;
-  window._selectedColor   = null;
-  window._detailQty       = 1;
-}
-
-window.switchImg = function(src, thumbEl) {
-  document.querySelector('#main-product-img').src = src;
-  document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
-  thumbEl.classList.add('active');
-};
-
-window.selectVariant = function(btn) {
-  document.querySelectorAll('.variant-btns .pill').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  window._selectedVariant = {
-    id:    btn.dataset.variantId,
-    size:  btn.dataset.size,
-    color: btn.dataset.color,
-  };
-  const v = window._currentProduct?.variants?.find(v => v.id == btn.dataset.variantId);
-  _applyVariantStock(v);
-};
-
-/** Selecciona atributo de variante (talla o color) */
-window.selectVariantAttr = function(attr, val, btn) {
-  btn.closest('.size-btns, .color-btns')
-     .querySelectorAll('button')
-     .forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-
-  if (attr === 'size') {
-    window._selectedSize = val;
-    const lbl = document.querySelector('#v-size-label');
-    if (lbl) lbl.textContent = val;
-  } else {
-    window._selectedColor = val;
-    const lbl = document.querySelector('#v-color-label');
-    if (lbl) lbl.textContent = val;
-  }
-  _resolveVariant();
-};
-
-function _resolveVariant() {
-  const p = window._currentProduct;
-  if (!p?.variants?.length) return;
-
-  const hasSizes  = p.variants.some(v => v.size);
-  const hasColors = p.variants.some(v => v.color);
-  let found = null;
-
-  if (hasSizes && hasColors) {
-    if (window._selectedSize && window._selectedColor) {
-      found = p.variants.find(v => v.size === window._selectedSize && v.color === window._selectedColor);
-    }
-  } else if (hasSizes) {
-    found = window._selectedSize ? p.variants.find(v => v.size === window._selectedSize) : null;
-  } else {
-    found = window._selectedColor ? p.variants.find(v => v.color === window._selectedColor) : null;
-  }
-
-  window._selectedVariant = found ? { id: found.id, size: found.size, color: found.color } : null;
-
-  const hasSelection = hasSizes && hasColors
-    ? !!(window._selectedSize && window._selectedColor)
-    : !!(window._selectedSize || window._selectedColor);
-
-  if (!hasSelection) return;
-
-  if (found) {
-    _applyVariantStock(found);
-  } else {
-    const stockEl = document.querySelector('#stock-info');
-    if (stockEl) { stockEl.textContent = 'Combinación no disponible'; stockEl.style.color = '#f44336'; stockEl.style.display = ''; }
-    const addBtn = document.querySelector('#add-to-cart-btn');
-    const buyBtn = document.querySelector('#buy-now-btn');
-    if (addBtn) addBtn.disabled = true;
-    if (buyBtn) buyBtn.disabled = true;
-  }
-}
-
-function _applyVariantStock(v) {
-  if (!v) return;
-  const inStock = v.stock > 0;
-  const stockEl = document.querySelector('#stock-info');
-  const addBtn  = document.querySelector('#add-to-cart-btn');
-  const buyBtn  = document.querySelector('#buy-now-btn');
-  const qtyEl   = document.querySelector('#detail-qty');
-
-  if (stockEl) {
-    stockEl.textContent = inStock
-      ? `${v.stock} disponible${v.stock !== 1 ? 's' : ''}`
-      : 'Sin stock';
-    stockEl.style.color = !inStock ? '#f44336' : v.stock <= 5 ? '#e65c00' : '#4caf50';
-    stockEl.style.display = '';
-  }
-  if (addBtn) addBtn.disabled = !inStock;
-  if (buyBtn) buyBtn.disabled = !inStock;
-  if (qtyEl && inStock) {
-    window._detailQty = 1;
-    qtyEl.textContent  = 1;
-    qtyEl.dataset.max  = v.stock;
-  }
-}
-
-/** Mapea nombre de color a hex */
-function colorNameToHex(name) {
-  const map = {
-    rojo:'#e53935', red:'#e53935', azul:'#1e88e5', blue:'#1e88e5',
-    verde:'#43a047', green:'#43a047', amarillo:'#fdd835', yellow:'#fdd835',
-    negro:'#212121', black:'#212121', blanco:'#f5f5f5', white:'#f5f5f5',
-    rosado:'#e91e8c', rosa:'#f48fb1', pink:'#f48fb1',
-    naranja:'#fb8c00', orange:'#fb8c00', morado:'#8e24aa', violeta:'#7b1fa2',
-    purple:'#7b1fa2', dorado:'#c8a96e', gold:'#c8a96e',
-    plateado:'#9e9e9e', silver:'#9e9e9e', beige:'#d7c4a0',
-    cafe:'#795548', marrón:'#795548', brown:'#795548', coral:'#ff7043',
-    turquesa:'#00acc1', teal:'#00897b', celeste:'#4fc3f7',
-  };
-  return map[(name || '').toLowerCase().trim()] || '#c8a96e';
-}
-window.colorNameToHex = colorNameToHex;
-
-/** Zoom de imagen */
-window.zoomImg = function(src, alt) {
-  if (!src) return;
-  const overlay = document.createElement('div');
-  overlay.className = 'img-zoom-overlay';
-  overlay.setAttribute('role', 'dialog');
-  overlay.setAttribute('aria-label', 'Imagen ampliada');
-  overlay.innerHTML = `
-    <span class="img-zoom-overlay__close" onclick="this.parentElement.remove()" aria-label="Cerrar">✕</span>
-    <img src="${src}" alt="${alt || ''}" style="max-width:min(92vw,720px);max-height:85vh;object-fit:contain;border-radius:var(--radius,8px)">`;
-  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
-  // Cerrar con Escape
-  const onKey = e => { if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', onKey); } };
-  document.addEventListener('keydown', onKey);
-  document.body.appendChild(overlay);
-};
-
-/** Cargar productos relacionados */
-async function loadRelatedProducts(categoryId, excludeId) {
-  const section = document.querySelector('#related-section');
-  const relGrid = document.querySelector('#related-grid');
-  if (!section || !relGrid) return;
-  try {
-    const data    = await GaiaAPI.getProducts({ category: categoryId, page: 1 });
-    const related = (data.results || []).filter(pr => pr.id != excludeId).slice(0, 4);
-    if (!related.length) return;
-    section.style.display = '';
-    relGrid.innerHTML = related.map(renderProductCard).join('');
-  } catch (_) {}
-}
-
-/** Comprar ahora: agrega al carrito y va directo a checkout */
-window.buyNow = function() {
-  const p = window._currentProduct;
-  if (!p) return;
-  GaiaCart.addItem(p, window._selectedVariant, window._detailQty || 1);
-  location.href = 'checkout.html';
-};
-
-window.changeDetailQty = function(delta) {
-  const el  = document.querySelector('#detail-qty');
-  const max = parseInt(el?.dataset.max) || 999;
-  window._detailQty = Math.min(max, Math.max(1, (window._detailQty || 1) + delta));
-  if (el) el.textContent = window._detailQty;
-};
-
-window.addDetailToCart = function() {
-  const p = window._currentProduct;
-  if (!p) return;
-  GaiaCart.addItem(p, window._selectedVariant, window._detailQty || 1);
-  showToast(`${p.name} agregado al carrito`, 'success');
-};
+// ── Render helpers (carrito / checkout / confirmacion) ─────────────────────────
 
 function renderCartPage() {
-  const container = document.querySelector('#cart-items');
-  const summary   = document.querySelector('#cart-summary');
-  const items     = GaiaCart.getItems();
-
+  var container = document.querySelector('#cart-items');
+  var summary   = document.querySelector('#cart-summary');
+  var items     = GaiaCart.getItems();
   if (!container) return;
-
   if (!items.length) {
-    container.innerHTML = `
-      <div class="empty-state" style="padding:5rem 1rem">
-        <div class="empty-state__icon">🛒</div>
-        <h3>Tu carrito está vacío</h3>
-        <p>Explora nuestra tienda y agrega productos que te gusten.</p>
-        <a href="tienda.html" class="btn btn-primary mt-3">Ir a la tienda</a>
-      </div>`;
+    container.innerHTML = '<div class="empty-state" style="padding:5rem 1rem">' +
+      '<div class="empty-state__icon">🛒</div>' +
+      '<h3>Tu carrito está vacío</h3>' +
+      '<p>Explora nuestra tienda y agrega productos que te gusten.</p>' +
+      '<a href="tienda.html" class="btn btn-primary mt-3">Ir a la tienda</a>' +
+      '</div>';
     if (summary) summary.innerHTML = '';
     return;
   }
-
-  // Table header + rows
-  container.innerHTML = `
-    <div class="cart-table">
-      <div class="cart-table-head">
-        <span></span>
-        <span>Producto</span>
-        <span style="text-align:center">Precio</span>
-        <span style="text-align:center">Cantidad</span>
-        <span style="text-align:right">Subtotal</span>
-        <span></span>
-      </div>
-      ${items.map(item => `
-        <div class="cart-row" data-id="${item.id}">
-          <div class="cart-row__img">
-            <img src="${item.image || 'https://placehold.co/80x80/e8d5b0/9e7d4a?text=G'}"
-              alt="${item.name}" onerror="handleImgError(this)">
-          </div>
-          <div class="cart-row__info">
-            <p class="cart-row__name">${item.name}</p>
-            ${item.variant_label ? `<p class="cart-row__variant">${item.variant_label}</p>` : ''}
-          </div>
-          <div class="cart-row__price">${formatPrice(item.price)}</div>
-          <div class="cart-row__qty">
-            <button class="qty-btn" onclick="GaiaCart.updateQty('${item.id}', ${item.quantity - 1})" aria-label="Quitar uno">−</button>
-            <span class="qty-value">${item.quantity}</span>
-            <button class="qty-btn" onclick="GaiaCart.updateQty('${item.id}', ${item.quantity + 1})" aria-label="Agregar uno">+</button>
-          </div>
-          <div class="cart-row__subtotal">${formatPrice(item.price * item.quantity)}</div>
-          <div class="cart-row__remove">
-            <button class="cart-item__remove" onclick="GaiaCart.removeItem('${item.id}')"
-              title="Eliminar" aria-label="Eliminar ${item.name}">✕</button>
-          </div>
-        </div>`).join('')}
-    </div>`;
-
+  container.innerHTML = '<div class="cart-table">' +
+    '<div class="cart-table-head"><span></span><span>Producto</span>' +
+    '<span style="text-align:center">Precio</span><span style="text-align:center">Cantidad</span>' +
+    '<span style="text-align:right">Subtotal</span><span></span></div>' +
+    items.map(function (item) {
+      return '<div class="cart-row" data-id="' + item.id + '">' +
+        '<div class="cart-row__img"><img src="' + (item.image || 'https://placehold.co/80x80/faf7f5/c78271?text=G') + '"' +
+          ' alt="' + item.name + '" onerror="handleImgError(this)"></div>' +
+        '<div class="cart-row__info"><p class="cart-row__name">' + item.name + '</p>' +
+          (item.variant_label ? '<p class="cart-row__variant">' + item.variant_label + '</p>' : '') + '</div>' +
+        '<div class="cart-row__price">' + formatPrice(item.price) + '</div>' +
+        '<div class="cart-row__qty">' +
+          '<button class="qty-btn" onclick="GaiaCart.updateQty(\'' + item.id + '\',' + (item.quantity - 1) + ')" aria-label="Quitar uno">−</button>' +
+          '<span class="qty-value">' + item.quantity + '</span>' +
+          '<button class="qty-btn" onclick="GaiaCart.updateQty(\'' + item.id + '\',' + (item.quantity + 1) + ')" aria-label="Agregar uno">+</button>' +
+        '</div>' +
+        '<div class="cart-row__subtotal">' + formatPrice(item.price * item.quantity) + '</div>' +
+        '<div class="cart-row__remove"><button class="cart-item__remove"' +
+          ' onclick="GaiaCart.removeItem(\'' + item.id + '\')" title="Eliminar">✕</button></div>' +
+      '</div>';
+    }).join('') +
+  '</div>';
   if (summary) {
-    const total = GaiaCart.getTotal();
-    const count = GaiaCart.getCount();
-    summary.innerHTML = `
-      <div class="order-summary">
-        <h3 class="order-summary__title">Resumen del pedido</h3>
-        <div class="order-summary__row">
-          <span>Subtotal (${count} producto${count !== 1 ? 's' : ''})</span>
-          <span>${formatPrice(total)}</span>
-        </div>
-        <div class="order-summary__row">
-          <span>Envío</span>
-          <span style="color:var(--primary);font-weight:500">A confirmar</span>
-        </div>
-        <div class="order-summary__total">
-          <span>Total</span>
-          <span>${formatPrice(total)}</span>
-        </div>
-        <a href="checkout.html" class="btn btn-primary btn-full mt-3">
-          Proceder al pago →
-        </a>
-        <a href="tienda.html" class="btn btn-ghost btn-full mt-1">
-          Seguir comprando
-        </a>
-      </div>`;
+    var total = GaiaCart.getTotal();
+    var count = GaiaCart.getCount();
+    summary.innerHTML = '<div class="order-summary">' +
+      '<h3 class="order-summary__title">Resumen del pedido</h3>' +
+      '<div class="order-summary__row"><span>Subtotal (' + count + ' producto' + (count !== 1 ? 's' : '') + ')</span><span>' + formatPrice(total) + '</span></div>' +
+      '<div class="order-summary__row"><span>Envío</span><span style="color:var(--color-primary);font-weight:500">A confirmar</span></div>' +
+      '<div class="order-summary__total"><span>Total</span><span>' + formatPrice(total) + '</span></div>' +
+      '<a href="checkout.html" class="btn btn-primary btn-full mt-3">Proceder al pago →</a>' +
+      '<a href="tienda.html" class="btn btn-ghost btn-full mt-1">Seguir comprando</a>' +
+    '</div>';
   }
 }
 
 function renderCheckoutSummary(items) {
-  const el = document.querySelector('#checkout-items-summary');
+  var el = document.querySelector('#checkout-items-summary');
   if (!el) return;
-  const total = GaiaCart.getTotal();
-  el.innerHTML = `
-    <div class="order-summary">
-      <h3 class="order-summary__title">Tu pedido</h3>
-      ${items.map(i => `
-        <div class="order-summary__row">
-          <span>${i.name}${i.variant_label ? ` <small>(${i.variant_label})</small>` : ''} × ${i.quantity}</span>
-          <span>${formatPrice(i.price * i.quantity)}</span>
-        </div>`).join('')}
-      <div class="order-summary__total">
-        <span>Total</span><span>${formatPrice(total)}</span>
-      </div>
-    </div>`;
+  var total = GaiaCart.getTotal();
+  el.innerHTML = '<div class="order-summary">' +
+    '<h3 class="order-summary__title">Tu pedido</h3>' +
+    items.map(function (i) {
+      return '<div class="order-summary__row"><span>' + i.name + (i.variant_label ? ' <small>(' + i.variant_label + ')</small>' : '') + ' × ' + i.quantity + '</span>' +
+        '<span>' + formatPrice(i.price * i.quantity) + '</span></div>';
+    }).join('') +
+    '<div class="order-summary__total"><span>Total</span><span>' + formatPrice(total) + '</span></div>' +
+  '</div>';
 }
 
-/** Valida solo los campos del paso 1 */
 function validateStep1(form) {
-  let ok = true;
-  ['customer_name', 'customer_phone'].forEach(name => {
-    const el = form[name];
-    if (!el || !el.value.trim()) {
-      if (el) el.classList.add('error');
-      ok = false;
-    } else {
-      if (el) el.classList.remove('error');
-    }
+  var ok = true;
+  ['customer_name', 'customer_phone'].forEach(function (name) {
+    var el = form[name];
+    if (!el || !el.value.trim()) { if (el) el.classList.add('error'); ok = false; }
+    else { if (el) el.classList.remove('error'); }
   });
   if (!form.querySelector('input[name=delivery_method]:checked')) {
-    showToast('Selecciona un método de entrega.', 'error');
-    return false;
+    showToast('Selecciona un método de entrega.', 'error'); return false;
   }
   if (!ok) showToast('Completa los campos obligatorios.', 'error');
   return ok;
 }
 
-/** Valida todos los campos del formulario (paso 2 incluido) */
 function validateCheckoutForm(form) {
-  let ok = true;
-  ['customer_name', 'customer_phone'].forEach(name => {
-    const el = form[name];
+  var ok = true;
+  ['customer_name', 'customer_phone'].forEach(function (name) {
+    var el = form[name];
     if (!el || !el.value.trim()) { if (el) el.classList.add('error'); ok = false; }
     else { if (el) el.classList.remove('error'); }
   });
@@ -1049,185 +1082,114 @@ function validateCheckoutForm(form) {
 }
 
 function _statusBadgeHtml(status) {
-  const map = {
-    pending:   { label: 'Pendiente',        color: '#e65c00', bg: 'rgba(230,92,0,.1)' },
-    confirmed: { label: 'Confirmado',        color: '#1976d2', bg: 'rgba(25,118,210,.1)' },
-    delivered: { label: 'En camino',         color: '#7b1fa2', bg: 'rgba(123,31,162,.1)' },
-    received:  { label: 'Recibido ✓',        color: '#2e7d32', bg: 'rgba(46,125,50,.1)' },
-    cancelled: { label: 'Cancelado',         color: '#c62828', bg: 'rgba(198,40,40,.1)' },
+  var map = {
+    pending:   { label: 'Pendiente',  color: '#e65c00', bg: 'rgba(230,92,0,.1)' },
+    confirmed: { label: 'Confirmado', color: '#1976d2', bg: 'rgba(25,118,210,.1)' },
+    delivered: { label: 'En camino',  color: '#7b1fa2', bg: 'rgba(123,31,162,.1)' },
+    received:  { label: 'Recibido ✓', color: '#2e7d32', bg: 'rgba(46,125,50,.1)' },
+    cancelled: { label: 'Cancelado',  color: '#c62828', bg: 'rgba(198,40,40,.1)' },
   };
-  const s = map[status] || { label: status || 'Pendiente', color: '#666', bg: '#f5f5f5' };
-  return `<span style="
-    display:inline-block;padding:.25rem .85rem;border-radius:999px;font-size:.78rem;font-weight:700;
-    color:${s.color};background:${s.bg};letter-spacing:.05em;text-transform:uppercase;margin-top:.4rem
-  ">${s.label}</span>`;
+  var s = map[status] || { label: status || 'Pendiente', color: '#666', bg: '#f5f5f5' };
+  return '<span style="display:inline-block;padding:.25rem .85rem;border-radius:999px;font-size:.78rem;font-weight:700;' +
+    'color:' + s.color + ';background:' + s.bg + ';letter-spacing:.05em;text-transform:uppercase;margin-top:.4rem">' + s.label + '</span>';
 }
 
 function renderOrderConfirmation(order, container) {
   if (!container) return;
+  var orderItems = order.items || order.order_items || [];
+  var waStore    = window._storeCache && window._storeCache.whatsapp && window._storeCache.whatsapp.replace(/\D/g, '');
+  var waMsg      = encodeURIComponent('Hola Gaia Bolivia! Mi pedido #' + order.id + ' ya está pagado ✅');
+  var waUrl      = waStore ? 'https://wa.me/' + waStore + '?text=' + waMsg : '#';
+  var status     = order.status || 'pending';
+  var canCancel  = ['pending', 'confirmed'].includes(status);
+  var canReceive = ['confirmed', 'delivered'].includes(status);
 
-  const orderItems = order.items || order.order_items || [];
-  const waStore    = window._storeCache?.whatsapp?.replace(/\D/g, '');
-  const waMsg      = encodeURIComponent(`Hola Gaia Bolivia! Mi pedido #${order.id} ya está pagado ✅`);
-  const waUrl      = waStore ? `https://wa.me/${waStore}?text=${waMsg}` : `#`;
-  const status     = order.status || 'pending';
-
-  // Botones de acción según estado del pedido
-  const canCancel   = ['pending', 'confirmed'].includes(status);
-  const canReceive  = ['confirmed', 'delivered'].includes(status);
-
-  container.innerHTML = `
-    <div class="conf-card">
-
-      <!-- ── Header ── -->
-      <div class="conf-card__header">
-        <div class="conf-icon">${status === 'cancelled' ? '❌' : status === 'received' ? '🎉' : '✅'}</div>
-        <h2>${status === 'cancelled'
-          ? 'Pedido cancelado'
-          : status === 'received'
-          ? `¡Gracias, ${order.customer_name?.split(' ')[0] || ''}!`
-          : `¡Pedido recibido, ${order.customer_name?.split(' ')[0] || ''}!`}</h2>
-        <span class="order-id">Pedido #${order.id}</span>
-        ${_statusBadgeHtml(status)}
-      </div>
-
-      <!-- ── Detalles ── -->
-      <div class="conf-section">
-        <p class="conf-section__title">Detalles del pedido</p>
-        <div class="conf-row"><span>Cliente</span><strong>${order.customer_name}</strong></div>
-        <div class="conf-row"><span>Teléfono</span><strong>${order.customer_phone}</strong></div>
-        <div class="conf-row"><span>Entrega</span><strong>${order.delivery_method_display || order.delivery_method}</strong></div>
-        <div class="conf-row"><span>Pago</span><strong>${order.payment_method_display || order.payment_method}</strong></div>
-        ${order.customer_address ? `<div class="conf-row"><span>Dirección</span><strong>${order.customer_address}</strong></div>` : ''}
-        ${order.notes ? `<div class="conf-row"><span>Notas</span><strong>${order.notes}</strong></div>` : ''}
-        <div class="conf-row total"><span>Total a pagar</span><strong>${formatPrice(order.total_amount)}</strong></div>
-      </div>
-
-      <!-- ── Productos ── -->
-      ${orderItems.length ? `
-        <div class="conf-section">
-          <p class="conf-section__title">Productos del pedido</p>
-          ${orderItems.map(item => `
-            <div class="conf-item">
-              <img class="conf-item__img"
-                src="${item.product_image || item.image || 'https://placehold.co/48x48/e8d5b0/9e7d4a?text=G'}"
-                alt="${item.product_name || item.name}" onerror="handleImgError(this)">
-              <div style="flex:1;min-width:0">
-                <p class="conf-item__name">${item.product_name || item.name}</p>
-                <p class="conf-item__meta">
-                  ${item.variant_label ? `${item.variant_label} · ` : ''}
-                  Cantidad: ${item.quantity} · ${formatPrice(item.unit_price || item.price)} c/u
-                </p>
-              </div>
-              <span class="conf-item__price">${formatPrice((item.unit_price || item.price) * item.quantity)}</span>
-            </div>`).join('')}
-        </div>` : ''}
-
-      <!-- ── Instrucciones de pago / QR ── -->
-      ${status !== 'cancelled' ? (order.qr_image || order.payment_method !== 'efectivo' ? `
-        <div class="conf-section conf-qr">
-          <p class="conf-section__title">Instrucciones de pago</p>
-          ${order.qr_image ? `
-            <img src="${order.qr_image}" alt="QR de pago">
-            <p>Escanea el QR con tu app de <strong>${order.payment_method_display || order.payment_method}</strong></p>` : ''}
-          <div class="conf-amount">${formatPrice(order.total_amount)}</div>
-          <p style="margin-top:.5rem">
-            Transfiere el monto exacto y luego sube tu comprobante.<br>
-            <small>Confirmaremos tu pedido en 1-2 horas.</small>
-          </p>
-        </div>` : `
-        <div class="conf-section" style="text-align:center">
-          <p class="conf-section__title">Pago en efectivo</p>
-          <p>Pagarás <strong>${formatPrice(order.total_amount)}</strong> al recoger tu pedido.</p>
-        </div>`) : ''}
-
-      <!-- ── Comprobante de pago ── -->
-      ${order.payment_method !== 'efectivo' && status !== 'cancelled' ? `
-        <div class="conf-section" id="receipt-upload-section">
-          <p class="conf-section__title">📎 Comprobante de pago</p>
-          ${order.payment_receipt ? `
-            <div style="text-align:center">
-              <p style="color:#2e7d32;font-weight:600;margin-bottom:.75rem">✓ Comprobante enviado — te contactaremos pronto.</p>
-              <a href="${order.payment_receipt}" target="_blank" rel="noopener"
-                style="display:inline-block;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;max-width:280px">
-                <img src="${order.payment_receipt}" alt="Comprobante de pago"
-                  style="width:100%;max-height:260px;object-fit:contain;display:block"
-                  onerror="this.parentElement.innerHTML='<p style=padding:.75rem>Ver comprobante →</p>'">
-              </a>
-              <p style="font-size:.78rem;color:var(--text-light);margin-top:.5rem">Toca la imagen para ampliar</p>
-            </div>` : `
-            <div id="upload-area">
-              <input type="file" id="receipt-file" accept="image/*" class="sr-only">
-              <label for="receipt-file" class="upload-label">
-                <span class="upload-icon">📎</span>
-                <span id="upload-text">Seleccionar imagen del comprobante</span>
-              </label>
-              <div id="receipt-preview" style="display:none;text-align:center;margin:.75rem 0">
-                <img id="receipt-preview-img" style="max-width:100%;max-height:220px;object-fit:contain;
-                  border:1px solid var(--border);border-radius:var(--radius)">
-              </div>
-              <button class="btn btn-primary btn-full mt-2" id="upload-btn" disabled>
-                Enviar comprobante
-              </button>
-            </div>`}
-        </div>` : ''}
-
-      <!-- ── Acciones de estado ── -->
-      ${canCancel || canReceive ? `
-        <div class="conf-section">
-          <p class="conf-section__title">Acciones del pedido</p>
-          <div style="display:flex;gap:.75rem;flex-wrap:wrap">
-            ${canReceive ? `
-              <button class="btn btn-primary" id="btn-confirm-received" onclick="handleConfirmReceived(${order.id})">
-                ✅ Confirmar que lo recibí
-              </button>` : ''}
-            ${canCancel ? `
-              <button class="btn btn-outline" id="btn-cancel-order"
-                style="border-color:#c62828;color:#c62828"
-                onclick="handleCancelOrder(${order.id})">
-                ✕ Cancelar pedido
-              </button>` : ''}
-          </div>
-          ${canReceive ? '<p style="font-size:.78rem;color:var(--text-light);margin-top:.5rem">Presiona este botón una vez que hayas recibido tus productos.</p>' : ''}
-          ${canCancel && !canReceive ? '<p style="font-size:.78rem;color:var(--text-light);margin-top:.5rem">Solo puedes cancelar mientras el pedido no haya sido enviado.</p>' : ''}
-        </div>` : ''}
-
-      <!-- ── Acciones de navegación ── -->
-      <div class="conf-section">
-        <div class="conf-actions">
-          <a href="${waUrl}" target="_blank" rel="noopener" class="btn btn-lg btn-whatsapp">
-            💬 Consultar por WhatsApp
-          </a>
-          <button class="btn btn-outline" onclick="window.print()">🖨️ Imprimir</button>
-          <a href="tienda.html" class="btn btn-ghost">Seguir comprando</a>
-        </div>
-      </div>
-
-    </div>`;
+  container.innerHTML = '<div class="conf-card">' +
+    '<div class="conf-card__header">' +
+      '<div class="conf-icon">' + (status === 'cancelled' ? '❌' : status === 'received' ? '🎉' : '✅') + '</div>' +
+      '<h2>' + (status === 'cancelled' ? 'Pedido cancelado' : status === 'received'
+        ? '¡Gracias, ' + (order.customer_name || '').split(' ')[0] + '!'
+        : '¡Pedido recibido, ' + (order.customer_name || '').split(' ')[0] + '!') + '</h2>' +
+      '<span class="order-id">Pedido #' + order.id + '</span>' +
+      _statusBadgeHtml(status) +
+    '</div>' +
+    '<div class="conf-section">' +
+      '<p class="conf-section__title">Detalles del pedido</p>' +
+      '<div class="conf-row"><span>Cliente</span><strong>' + order.customer_name + '</strong></div>' +
+      '<div class="conf-row"><span>Teléfono</span><strong>' + order.customer_phone + '</strong></div>' +
+      '<div class="conf-row"><span>Entrega</span><strong>' + (order.delivery_method_display || order.delivery_method) + '</strong></div>' +
+      '<div class="conf-row"><span>Pago</span><strong>' + (order.payment_method_display || order.payment_method) + '</strong></div>' +
+      (order.customer_address ? '<div class="conf-row"><span>Dirección</span><strong>' + order.customer_address + '</strong></div>' : '') +
+      (order.notes ? '<div class="conf-row"><span>Notas</span><strong>' + order.notes + '</strong></div>' : '') +
+      '<div class="conf-row total"><span>Total a pagar</span><strong>' + formatPrice(order.total_amount) + '</strong></div>' +
+    '</div>' +
+    (orderItems.length ? '<div class="conf-section"><p class="conf-section__title">Productos del pedido</p>' +
+      orderItems.map(function (item) {
+        return '<div class="conf-item">' +
+          '<img class="conf-item__img" src="' + (item.product_image || item.image || 'https://placehold.co/48x48/faf7f5/c78271?text=G') + '"' +
+            ' alt="' + (item.product_name || item.name) + '" onerror="handleImgError(this)">' +
+          '<div style="flex:1;min-width:0">' +
+            '<p class="conf-item__name">' + (item.product_name || item.name) + '</p>' +
+            '<p class="conf-item__meta">' + (item.variant_label ? item.variant_label + ' · ' : '') +
+              'Cantidad: ' + item.quantity + ' · ' + formatPrice(item.unit_price || item.price) + ' c/u</p>' +
+          '</div>' +
+          '<span class="conf-item__price">' + formatPrice((item.unit_price || item.price) * item.quantity) + '</span>' +
+        '</div>';
+      }).join('') + '</div>' : '') +
+    (status !== 'cancelled' && (order.qr_image || order.payment_method !== 'efectivo') ? '<div class="conf-section conf-qr">' +
+      '<p class="conf-section__title">Instrucciones de pago</p>' +
+      (order.qr_image ? '<img src="' + order.qr_image + '" alt="QR de pago"><p>Escanea el QR con tu app de <strong>' + (order.payment_method_display || order.payment_method) + '</strong></p>' : '') +
+      '<div class="conf-amount">' + formatPrice(order.total_amount) + '</div>' +
+      '<p style="margin-top:.5rem">Transfiere el monto exacto y luego sube tu comprobante.<br><small>Confirmaremos tu pedido en 1-2 horas.</small></p>' +
+    '</div>' : (status !== 'cancelled' ? '<div class="conf-section" style="text-align:center"><p class="conf-section__title">Pago en efectivo</p>' +
+      '<p>Pagarás <strong>' + formatPrice(order.total_amount) + '</strong> al recoger tu pedido.</p></div>' : '')) +
+    (order.payment_method !== 'efectivo' && status !== 'cancelled' ? '<div class="conf-section" id="receipt-upload-section">' +
+      '<p class="conf-section__title">📎 Comprobante de pago</p>' +
+      (order.payment_receipt ? '<div style="text-align:center"><p style="color:#2e7d32;font-weight:600;margin-bottom:.75rem">✓ Comprobante enviado</p></div>'
+        : '<div id="upload-area">' +
+          '<input type="file" id="receipt-file" accept="image/*" class="sr-only">' +
+          '<label for="receipt-file" class="upload-label"><span class="upload-icon">📎</span><span id="upload-text">Seleccionar imagen del comprobante</span></label>' +
+          '<div id="receipt-preview" style="display:none;text-align:center;margin:.75rem 0">' +
+            '<img id="receipt-preview-img" style="max-width:100%;max-height:220px;object-fit:contain;border:1px solid var(--color-border)">' +
+          '</div>' +
+          '<button class="btn btn-primary btn-full mt-2" id="upload-btn" disabled>Enviar comprobante</button>' +
+        '</div>') +
+    '</div>' : '') +
+    (canCancel || canReceive ? '<div class="conf-section"><p class="conf-section__title">Acciones del pedido</p>' +
+      '<div style="display:flex;gap:.75rem;flex-wrap:wrap">' +
+        (canReceive ? '<button class="btn btn-primary" id="btn-confirm-received" onclick="handleConfirmReceived(' + order.id + ')">✅ Confirmar que lo recibí</button>' : '') +
+        (canCancel ? '<button class="btn btn-outline" id="btn-cancel-order" style="border-color:#c62828;color:#c62828" onclick="handleCancelOrder(' + order.id + ')">✕ Cancelar pedido</button>' : '') +
+      '</div>' +
+    '</div>' : '') +
+    '<div class="conf-section"><div class="conf-actions">' +
+      '<a href="' + waUrl + '" target="_blank" rel="noopener" class="btn btn-lg btn-whatsapp">💬 Consultar por WhatsApp</a>' +
+      '<button class="btn btn-outline" onclick="window.print()">🖨️ Imprimir</button>' +
+      '<a href="tienda.html" class="btn btn-ghost">Seguir comprando</a>' +
+    '</div></div>' +
+  '</div>';
 }
 
-window.handleConfirmReceived = async function(orderId) {
-  const btn = document.querySelector('#btn-confirm-received');
+window.handleConfirmReceived = async function (orderId) {
+  var btn = document.querySelector('#btn-confirm-received');
   if (btn) { btn.disabled = true; btn.textContent = 'Procesando...'; }
   try {
     await GaiaAPI.confirmReceived(orderId);
     showToast('¡Pedido confirmado como recibido!', 'success');
-    // Recargar para mostrar estado actualizado
-    setTimeout(() => location.reload(), 1200);
+    setTimeout(function () { location.reload(); }, 1200);
   } catch (err) {
     showToast(err.message || 'No se pudo confirmar. Intenta de nuevo.', 'error');
     if (btn) { btn.disabled = false; btn.textContent = '✅ Confirmar que lo recibí'; }
   }
 };
 
-window.handleCancelOrder = async function(orderId) {
+window.handleCancelOrder = async function (orderId) {
   if (!confirm('¿Estás seguro de que deseas cancelar este pedido?')) return;
-  const btn = document.querySelector('#btn-cancel-order');
+  var btn = document.querySelector('#btn-cancel-order');
   if (btn) { btn.disabled = true; btn.textContent = 'Cancelando...'; }
   try {
     await GaiaAPI.cancelOrder(orderId);
     showToast('Pedido cancelado.', 'default');
-    setTimeout(() => location.reload(), 1200);
+    setTimeout(function () { location.reload(); }, 1200);
   } catch (err) {
     showToast(err.message || 'No se pudo cancelar. Intenta de nuevo.', 'error');
     if (btn) { btn.disabled = false; btn.textContent = '✕ Cancelar pedido'; }
@@ -1235,55 +1197,38 @@ window.handleCancelOrder = async function(orderId) {
 };
 
 function initReceiptUpload(orderId) {
-  const fileInput   = document.querySelector('#receipt-file');
-  const uploadBtn   = document.querySelector('#upload-btn');
-  const uploadText  = document.querySelector('#upload-text');
-  const previewWrap = document.querySelector('#receipt-preview');
-  const previewImg  = document.querySelector('#receipt-preview-img');
-
+  var fileInput   = document.querySelector('#receipt-file');
+  var uploadBtn   = document.querySelector('#upload-btn');
+  var uploadText  = document.querySelector('#upload-text');
+  var previewWrap = document.querySelector('#receipt-preview');
+  var previewImg  = document.querySelector('#receipt-preview-img');
   if (!fileInput || !uploadBtn) return;
 
-  fileInput.addEventListener('change', () => {
-    const file = fileInput.files[0];
+  fileInput.addEventListener('change', function () {
+    var file = fileInput.files[0];
     if (!file) return;
-    uploadText.textContent = file.name;
+    if (uploadText) uploadText.textContent = file.name;
     uploadBtn.disabled = false;
-
-    // Mostrar preview de la imagen seleccionada
     if (previewWrap && previewImg) {
-      const reader = new FileReader();
-      reader.onload = e => {
-        previewImg.src = e.target.result;
-        previewWrap.style.display = '';
-      };
+      var reader = new FileReader();
+      reader.onload = function (e) { previewImg.src = e.target.result; previewWrap.style.display = ''; };
       reader.readAsDataURL(file);
     }
   });
 
-  uploadBtn.addEventListener('click', async () => {
-    const file = fileInput.files[0];
+  uploadBtn.addEventListener('click', async function () {
+    var file = fileInput.files[0];
     if (!file) return;
-
     uploadBtn.disabled = true;
     uploadBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:.5rem"><span class="spinner" style="width:16px;height:16px;margin:0;border-width:2px;border-color:rgba(255,255,255,.3);border-top-color:#fff"></span> Enviando...</span>';
-
     try {
-      const updated = await GaiaAPI.uploadReceipt(orderId, file);
+      var updated = await GaiaAPI.uploadReceipt(orderId, file);
       showToast('Comprobante enviado correctamente.', 'success');
-
-      // Reemplazar el área de upload con el comprobante confirmado
-      const uploadArea = document.querySelector('#upload-area');
+      var uploadArea = document.querySelector('#upload-area');
       if (uploadArea) {
-        const receiptUrl = updated?.payment_receipt || (previewImg?.src) || '';
-        uploadArea.innerHTML = `
-          <p style="color:#2e7d32;font-weight:600;margin-bottom:.75rem">✓ Comprobante enviado — te contactaremos pronto.</p>
-          ${receiptUrl ? `
-            <a href="${receiptUrl}" target="_blank" rel="noopener"
-              style="display:inline-block;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;max-width:280px">
-              <img src="${receiptUrl}" alt="Comprobante de pago"
-                style="width:100%;max-height:260px;object-fit:contain;display:block">
-            </a>
-            <p style="font-size:.78rem;color:var(--text-light);margin-top:.5rem">Toca la imagen para ampliar</p>` : ''}`;
+        var receiptUrl = (updated && updated.payment_receipt) || (previewImg && previewImg.src) || '';
+        uploadArea.innerHTML = '<p style="color:#2e7d32;font-weight:600;margin-bottom:.75rem">✓ Comprobante enviado — te contactaremos pronto.</p>' +
+          (receiptUrl ? '<a href="' + receiptUrl + '" target="_blank" rel="noopener" style="display:inline-block;border:1px solid var(--color-border);overflow:hidden;max-width:280px"><img src="' + receiptUrl + '" style="width:100%;max-height:260px;object-fit:contain;display:block"></a>' : '');
       }
     } catch (err) {
       showToast(err.message, 'error');
@@ -1293,13 +1238,34 @@ function initReceiptUpload(orderId) {
   });
 }
 
+// ── Zoom imagen (legacy, producto.html viejo) ──────────────────────────────────
+window.zoomImg = function (src, alt) {
+  if (!src) return;
+  var overlay = document.createElement('div');
+  overlay.className = 'img-zoom-overlay';
+  overlay.setAttribute('role', 'dialog');
+  overlay.innerHTML = '<span class="img-zoom-overlay__close" onclick="this.parentElement.remove()" aria-label="Cerrar">✕</span>' +
+    '<img src="' + src + '" alt="' + (alt || '') + '" style="max-width:min(92vw,720px);max-height:85vh;object-fit:contain">';
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.remove(); });
+  var onKey = function (e) { if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', onKey); } };
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(overlay);
+};
+
+window.switchImg = function (src, thumbEl) {
+  var mainImg = document.querySelector('#main-product-img');
+  if (mainImg) mainImg.src = src;
+  document.querySelectorAll('.thumb').forEach(function (t) { t.classList.remove('active'); });
+  if (thumbEl) thumbEl.classList.add('active');
+};
+
 // ── Bootstrap ──────────────────────────────────────────────────────────────────
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function () {
   initNavbar();
   _initStoreLinks();
 
-  const page = document.body.dataset.page;
+  var page = document.body.dataset.page;
   if (page === 'home')         initHome();
   if (page === 'tienda')       initTienda();
   if (page === 'producto')     initProducto();
@@ -1308,16 +1274,18 @@ document.addEventListener('DOMContentLoaded', () => {
   if (page === 'confirmacion') initConfirmacion();
 });
 
-/** Carga WhatsApp y FAB en todas las páginas */
 async function _initStoreLinks() {
   try {
-    const store = await GaiaAPI.getStore();
+    var store = await GaiaAPI.getStore();
     window._storeCache = store;
     if (store.whatsapp) {
-      const wa = `https://wa.me/${store.whatsapp.replace(/\D/g, '')}`;
-      document.querySelectorAll('[data-whatsapp]').forEach(b => { b.href = wa; });
-      const fab = document.querySelector('.whatsapp-fab');
+      var wa = 'https://wa.me/' + store.whatsapp.replace(/\D/g, '');
+      document.querySelectorAll('[data-whatsapp]').forEach(function (b) { b.href = wa; });
+      var fab = document.querySelector('.whatsapp-fab');
       if (fab) fab.style.display = 'flex';
     }
+    if (store.instagram) document.querySelectorAll('[data-instagram]').forEach(function (a) { a.href = store.instagram; });
+    if (store.facebook)  document.querySelectorAll('[data-facebook]').forEach(function (a) { a.href = store.facebook; });
+    if (store.tiktok)    document.querySelectorAll('[data-tiktok]').forEach(function (a) { a.href = store.tiktok; });
   } catch (_) {}
 }

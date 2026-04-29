@@ -7,8 +7,7 @@
  *     VENDOR_SLUG coincida con el slug real del vendedor.
  */
 
-// Configura el slug del vendedor aquí o en window.VENDOR_SLUG antes de cargar este script
-const VENDOR_SLUG = (typeof window !== 'undefined' && window.VENDOR_SLUG) || 'gaia-bolivia';
+const VENDOR_SLUG = 'gaia-bolivia';
 const API_BASE = `/api/public/${VENDOR_SLUG}`;
 
 /**
@@ -36,6 +35,11 @@ async function _request(url, options = {}) {
 
     // 204 No Content
     if (res.status === 204) return null;
+    const contentType = (res.headers.get('content-type') || '').toLowerCase();
+    if (!contentType.includes('application/json')) {
+      const body = await res.text();
+      throw new ApiError(`Respuesta no válida del servidor (${res.status}).`, res.status, { body: body?.slice(0, 200) });
+    }
     return res.json();
 
   } catch (err) {
@@ -74,10 +78,11 @@ async function getStore() {
  */
 async function getProducts(filters = {}) {
   const params = new URLSearchParams();
-  if (filters.category) params.set('category', filters.category);
-  if (filters.search)   params.set('search',   filters.search);
-  if (filters.page)     params.set('page',      filters.page);
-  if (filters.ordering) params.set('ordering',  filters.ordering);
+  if (filters.category)  params.set('category',  filters.category);
+  if (filters.search)    params.set('search',    filters.search);
+  if (filters.page)      params.set('page',      filters.page);
+  if (filters.ordering)  params.set('ordering',  filters.ordering);
+  if (filters.page_size) params.set('page_size', filters.page_size);
   const qs = params.toString();
   return _request(`${API_BASE}/products/${qs ? '?' + qs : ''}`);
 }
