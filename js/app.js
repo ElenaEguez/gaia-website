@@ -929,9 +929,9 @@ async function initCheckout() {
       var qrPreviewImg   = document.querySelector('#qr-preview-img');
       var qrInstructions = document.querySelector('#qr-preview-instructions');
       var qrName         = document.querySelector('#qr-method-name');
-      var showQR = ['tigo_money', 'banco_union'].includes(radio.value);
+      var showQR = ['banco_union'].includes(radio.value);
       if (qrPreview) qrPreview.style.display = showQR ? '' : 'none';
-      if (qrName)    qrName.textContent = radio.value === 'tigo_money' ? 'Tigo Money' : 'Banco Unión';
+      if (qrName)    qrName.textContent = radio.value === 'banco_union' ? 'Banco Unión' : 'Pago QR';
       var qrMethod = storeData && storeData.payment_methods && storeData.payment_methods.find(function (m) { return m.type === 'qr'; });
       if (qrPreviewImg)   qrPreviewImg.src = (qrMethod && qrMethod.qr_image) || 'https://placehold.co/200x200/e8d5b0/9e7d4a?text=QR+Pago';
       if (qrInstructions) qrInstructions.textContent = (qrMethod && qrMethod.instructions) || 'El QR de pago definitivo se generará al confirmar tu pedido.';

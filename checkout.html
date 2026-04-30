@@ -50,7 +50,7 @@
     #address-group.show { display: block; }
 
     /* Payment cards */
-    .payment-options { display: grid; grid-template-columns: repeat(3,1fr); gap: .75rem; margin-top: .5rem; }
+    .payment-options { display: grid; grid-template-columns: repeat(2,1fr); gap: .75rem; margin-top: .5rem; }
     @media (max-width: 480px) { .payment-options { grid-template-columns: 1fr; } }
     .payment-card {
       border: 2px solid var(--border); border-radius: var(--radius);
@@ -204,7 +204,7 @@
                     <span class="delivery-card__icon">🏪</span>
                     <div>
                       <p class="delivery-card__label">Recoger en tienda</p>
-                      <p class="delivery-card__sub">Coordinar punto de entrega</p>
+                      <p class="delivery-card__sub">Retiro en punto acordado con la tienda</p>
                     </div>
                   </label>
                   <label class="delivery-card" id="card-delivery">
@@ -212,7 +212,7 @@
                     <span class="delivery-card__icon">🚚</span>
                     <div>
                       <p class="delivery-card__label">Envío a domicilio</p>
-                      <p class="delivery-card__sub">Costo a coordinar</p>
+                      <p class="delivery-card__sub">Entrega urbana con coordinación previa</p>
                     </div>
                   </label>
                 </div>
@@ -243,14 +243,8 @@
               <div class="form-section">
                 <h3 class="form-section__title">💳 Método de pago</h3>
                 <div class="payment-options">
-                  <label class="payment-card" id="card-tigo">
-                    <input type="radio" name="payment_method" value="tigo_money" required>
-                    <div class="payment-card__icon">📱</div>
-                    <div class="payment-card__label">Tigo Money</div>
-                    <div class="payment-card__sub">Pago QR</div>
-                  </label>
                   <label class="payment-card" id="card-banco">
-                    <input type="radio" name="payment_method" value="banco_union">
+                    <input type="radio" name="payment_method" value="banco_union" required>
                     <div class="payment-card__icon">🏦</div>
                     <div class="payment-card__label">Banco Unión</div>
                     <div class="payment-card__sub">Transferencia QR</div>
@@ -268,7 +262,7 @@
                   <img src="https://placehold.co/200x200/e8d5b0/9e7d4a?text=QR+Pago"
                     alt="QR de pago" id="qr-preview-img">
                   <p id="qr-preview-instructions">
-                    <strong id="qr-method-name">Tigo Money</strong><br>
+                    <strong id="qr-method-name">Banco Unión</strong><br>
                     El QR de pago definitivo se generará al confirmar tu pedido.
                   </p>
                 </div>
@@ -300,6 +294,40 @@
       </div>
     </div>
   </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="assets/gaia-logo.svg" alt="Gaia Bolivia" style="height:44px;width:auto;filter:brightness(10)" onerror="this.style.display='none'">
+        <p class="footer-tagline">Moda femenina pensada para realzar tu estilo en cada ocasión. Compra segura, atención cercana y entregas coordinadas.</p>
+      </div>
+
+      <div class="footer-links">
+        <h5>Navegación</h5>
+        <ul>
+          <li><a href="index.html">Inicio</a></li>
+          <li><a href="tienda.html">Tienda</a></li>
+          <li><a href="nosotros.html">Nosotros</a></li>
+          <li><a href="contacto.html">Contacto</a></li>
+          <li><a href="carrito.html">Mi carrito</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links">
+        <h5>Atención</h5>
+        <ul>
+          <li><a href="tienda.html?category=vestidos">Vestidos</a></li>
+          <li><a href="tienda.html?category=blusas">Blusas y tops</a></li>
+          <li><a href="tienda.html?category=pantalones">Pantalones</a></li>
+          <li><a href="tienda.html?sale=true">Sale</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Gaia Bolivia · Todos los derechos reservados</span>
+      <span>Santa Cruz de la Sierra, Bolivia · <a href="#" data-whatsapp>WhatsApp</a></span>
+    </div>
+  </footer>
 
   <a class="whatsapp-fab" href="#" data-whatsapp aria-label="WhatsApp">💬</a>
 
