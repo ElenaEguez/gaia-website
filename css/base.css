@@ -37,6 +37,17 @@
 
   --navbar-h:      64px;
   --max-width:     1200px;
+
+  /* aliases legacy */
+  --primary: var(--color-primary);
+  --primary-dark: var(--color-primary-dark);
+  --secondary: var(--color-text);
+  --text: var(--color-text);
+  --text-light: var(--color-text-light);
+  --bg: var(--color-bg);
+  --bg-soft: var(--color-bg-soft);
+  --border: var(--color-border);
+  --white: var(--color-white);
 }
 
 /* ── Reset ────────────────────────────────────────────────────────────────── */

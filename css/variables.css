@@ -2,11 +2,28 @@
   --font-serif: 'Cormorant Garamond', Georgia, serif;
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 
-  --color-primary: #c78271;
-  --color-primary-dark: #a5604f;
-  --color-primary-soft: #f7e9e5;
+  /* Paleta inspirada en logo original Gaia */
+  --color-primary: #de8875;
+  --color-primary-dark: #bb6958;
+  --color-primary-soft: #f7e7e2;
+  --color-primary-pale: #fdf5f2;
   --color-black: #1f1f1f;
+  --color-white: #ffffff;
   --color-bg-soft: #fdf8f7;
+  --color-text: #2e201c;
   --color-text-muted: #7f6a63;
-  --color-border: rgba(199, 130, 113, 0.25);
+  --color-text-light: #ab8d84;
+  --color-border: rgba(222, 136, 117, 0.28);
+  --color-border-strong: rgba(222, 136, 117, 0.45);
+
+  /* Aliases legacy para evitar estilos rotos */
+  --primary: var(--color-primary);
+  --primary-dark: var(--color-primary-dark);
+  --secondary: var(--color-text);
+  --text: var(--color-text);
+  --text-light: var(--color-text-light);
+  --bg: var(--color-white);
+  --bg-soft: var(--color-bg-soft);
+  --border: var(--color-border);
+  --white: var(--color-white);
 }

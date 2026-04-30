@@ -325,9 +325,37 @@ async function initTienda() {
     if (!raw) return '';
     if (/^\d+$/.test(String(raw))) return String(raw);
     var candidate = _slugifyCategory(raw);
+    var normalized = (raw || '').toString().toLowerCase();
+    var aliases = {
+      vestidos: ['vestidos', 'vestido'],
+      blusas: ['blusas', 'blusa', 'tops', 'top'],
+      pantalones: ['pantalones', 'pantalon'],
+      faldas: ['faldas', 'falda', 'polleras', 'pollera'],
+      accesorios: ['accesorios', 'accesorio'],
+    };
+
     var found = (cats || []).find(function (c) {
-      return _slugifyCategory(c.name) === candidate;
+      var slug = _slugifyCategory(c.name);
+      return slug === candidate;
     });
+    if (found) return String(found.id);
+
+    var group = Object.keys(aliases).find(function (k) {
+      return aliases[k].some(function (a) { return normalized.indexOf(a) !== -1 || candidate.indexOf(a) !== -1; });
+    });
+    if (group) {
+      found = (cats || []).find(function (c) {
+        var slug = _slugifyCategory(c.name);
+        return aliases[group].some(function (a) { return slug.indexOf(a) !== -1; });
+      });
+    }
+
+    if (!found) {
+      found = (cats || []).find(function (c) {
+        var slug = _slugifyCategory(c.name);
+        return slug.indexOf(candidate) !== -1 || candidate.indexOf(slug) !== -1;
+      });
+    }
     return found ? String(found.id) : '';
   }
 

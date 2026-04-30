@@ -114,3 +114,208 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ── Product detail page ─────────────────────────────────────────────────── */
+.product-detail-layout {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem 3rem;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: .82rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1rem;
+}
+
+.product-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 55%) minmax(300px, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.product-gallery {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: .75rem;
+  align-items: start;
+}
+
+.gallery-thumbs {
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+}
+
+.gallery-thumb {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #fff;
+}
+.gallery-thumb.active {
+  border-color: var(--color-primary);
+}
+.gallery-thumb img {
+  width: 100%;
+  height: 84px;
+  object-fit: cover;
+}
+
+.gallery-main {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: #fff;
+}
+
+.gallery-main img {
+  width: 100%;
+  height: min(72vh, 760px);
+  object-fit: cover;
+  display: block;
+  transition: opacity .2s ease;
+}
+
+.gallery-prev,
+.gallery-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .9);
+  border: 1px solid var(--color-border);
+  font-size: 1.35rem;
+  color: var(--color-text);
+}
+.gallery-prev { left: .6rem; }
+.gallery-next { right: .6rem; }
+
+.product-info .product-category-label {
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--color-primary-dark);
+  margin-bottom: .4rem;
+}
+.product-info .product-name {
+  font-family: var(--font-serif);
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  line-height: 1.08;
+  color: var(--color-text);
+  margin-bottom: .5rem;
+}
+.product-info .product-price {
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 1rem;
+}
+
+.detail-option { margin-bottom: 1rem; }
+.option-label {
+  font-size: .78rem;
+  color: var(--color-text-muted);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: .5rem;
+}
+.detail-swatches,
+.detail-talles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+.swatch-detail {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 2px solid rgba(0, 0, 0, .18);
+}
+.swatch-detail.active { border-color: var(--color-primary); }
+
+.talle-btn {
+  min-width: 38px;
+  height: 34px;
+  padding: 0 .7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: .85rem;
+  background: #fff;
+}
+.talle-btn.active {
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+.talle-btn.oos {
+  opacity: .45;
+  text-decoration: line-through;
+}
+
+.qty-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: .35rem;
+}
+
+.btn-add-to-cart-detail {
+  width: 100%;
+  border-radius: 999px;
+  padding: .9rem 1rem;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.btn-whatsapp {
+  margin-top: .75rem;
+  width: 100%;
+  border-radius: 999px;
+  padding: .9rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  background: #25d366;
+  color: #fff;
+}
+
+.product-description {
+  margin-top: 1rem;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+
+.related-products {
+  margin-top: 2.2rem;
+}
+
+@media (max-width: 900px) {
+  .product-detail {
+    grid-template-columns: 1fr;
+    gap: 1.2rem;
+  }
+  .product-gallery {
+    grid-template-columns: 1fr;
+  }
+  .gallery-thumbs {
+    order: 2;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  .gallery-thumb { min-width: 74px; }
+  .gallery-main img {
+    height: min(58vh, 520px);
+  }
+}
