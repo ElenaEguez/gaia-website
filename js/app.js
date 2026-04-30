@@ -121,6 +121,16 @@ function getColorFallback(name) {
 }
 window.getColorFallback = getColorFallback;
 
+function getVariantColorValue(variant) {
+  if (!variant) return '';
+  var directHex = variant.color_hex || variant.hex || variant.hex_color || variant.color_code || variant.colour_hex;
+  if (directHex && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(directHex)) {
+    return directHex;
+  }
+  return getColorFallback(variant.color || variant.variant_value || '');
+}
+window.getVariantColorValue = getVariantColorValue;
+
 // Alias legacy
 function colorNameToHex(name) { return getColorFallback(name); }
 window.colorNameToHex = colorNameToHex;
@@ -142,21 +152,24 @@ function renderProductCard(product) {
   });
 
   // Colores únicos desde variantes
-  var colorNames = [];
+  var colorData = [];
   var seen = {};
   variants.forEach(function (v) {
-    var c = v.color || v.variant_value;
-    if (c && !seen[c]) { seen[c] = true; colorNames.push(c); }
+    var c = (v.color || v.variant_value || '').trim();
+    if (c && !seen[c]) {
+      seen[c] = true;
+      colorData.push({ name: c, value: getVariantColorValue(v) });
+    }
   });
 
   var swatchesHtml = '';
-  if (colorNames.length > 0) {
-    var shown = colorNames.slice(0, 4).map(function (c) {
-      return '<span class="swatch" style="background-color:' + getColorFallback(c) +
-             '" title="' + c + '" data-color="' + c + '"></span>';
+  if (colorData.length > 0) {
+    var shown = colorData.slice(0, 5).map(function (c) {
+      return '<span class="swatch" style="background-color:' + c.value +
+             '" title="' + c.name + '" data-color="' + c.name + '"></span>';
     }).join('');
-    var extra = colorNames.length > 4
-      ? '<span class="swatch-more">+' + (colorNames.length - 4) + '</span>'
+    var extra = colorData.length > 5
+      ? '<span class="swatch-more">+' + (colorData.length - 5) + '</span>'
       : '';
     swatchesHtml = '<div class="product-card__colors">' + shown + extra + '</div>';
   }
@@ -859,9 +872,9 @@ function renderPagination(el, data, currentPage, onPageChange) {
   }
 
   var pages = pageRange(currentPage, total);
-  var html  = '<div class="pagination">';
-  html += '<button class="page-btn" onclick="_paginationCb(' + (currentPage - 1) + ')"' +
-    (currentPage === 1 ? ' disabled' : '') + ' aria-label="Anterior">‹</button>';
+  var html  = '<nav class="pagination" aria-label="Paginación de productos">';
+  html += '<button class="page-btn page-btn--nav" onclick="_paginationCb(' + (currentPage - 1) + ')"' +
+    (currentPage === 1 ? ' disabled' : '') + ' aria-label="Anterior">Anterior</button>';
   pages.forEach(function (p) {
     if (p === '…') {
       html += '<span class="page-ellipsis">…</span>';
@@ -870,9 +883,10 @@ function renderPagination(el, data, currentPage, onPageChange) {
         ' onclick="_paginationCb(' + p + ')" aria-label="Página ' + p + '">' + p + '</button>';
     }
   });
-  html += '<button class="page-btn" onclick="_paginationCb(' + (currentPage + 1) + ')"' +
-    (currentPage === total ? ' disabled' : '') + ' aria-label="Siguiente">›</button>';
-  html += '</div>';
+  html += '<button class="page-btn page-btn--nav" onclick="_paginationCb(' + (currentPage + 1) + ')"' +
+    (currentPage === total ? ' disabled' : '') + ' aria-label="Siguiente">Siguiente</button>';
+  html += '</nav>';
+  html += '<p class="pagination-meta">Página ' + currentPage + ' de ' + total + '</p>';
   el.innerHTML = html;
 }
 
