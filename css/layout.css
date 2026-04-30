@@ -23,7 +23,10 @@
   flex-shrink: 0;
 }
 .navbar__logo img {
-  height: 38px; width: auto;
+  height: 38px;
+  width: auto;
+  max-width: min(220px, 50vw);
+  object-fit: contain;
 }
 .navbar__logo-text {
   font-family: var(--font-heading);

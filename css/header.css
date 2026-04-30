@@ -28,6 +28,8 @@
 .site-logo__img {
   height: 44px;
   width: auto;
+  max-width: min(240px, 55vw);
+  object-fit: contain;
 }
 
 .main-nav {
