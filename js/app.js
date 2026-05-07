@@ -78,6 +78,24 @@ function formatPrice(amount) {
 }
 window.formatPrice = formatPrice;
 
+var DISCOUNT_STORAGE_KEY = 'gaia_checkout_discount';
+
+function _loadDiscount() {
+  try {
+    return JSON.parse(localStorage.getItem(DISCOUNT_STORAGE_KEY)) || { code: '', amount: 0 };
+  } catch (_) {
+    return { code: '', amount: 0 };
+  }
+}
+
+function _saveDiscount(discount) {
+  localStorage.setItem(DISCOUNT_STORAGE_KEY, JSON.stringify(discount || { code: '', amount: 0 }));
+}
+
+function _clearDiscount() {
+  _saveDiscount({ code: '', amount: 0 });
+}
+
 function getParam(key) {
   return new URLSearchParams(location.search).get(key);
 }
@@ -920,6 +938,33 @@ async function initCheckout() {
   var panel2  = document.querySelector('#step-panel-2');
   var btnNext = document.querySelector('#btn-next');
   var btnBack = document.querySelector('#btn-back');
+  var cashRadio = form.querySelector('input[name=payment_method][value=efectivo]');
+  var cashCard = cashRadio && cashRadio.closest ? cashRadio.closest('.payment-card') : null;
+  var bankRadio = form.querySelector('input[name=payment_method][value=banco_union]');
+  var qrDownloadBtn = document.querySelector('#btn-download-qr');
+
+  function requiresNonCashPayment() {
+    var deliveryMethod = form.querySelector('input[name=delivery_method]:checked');
+    if (!deliveryMethod || deliveryMethod.value !== 'delivery') return false;
+    var zone = form.querySelector('input[name=delivery_zone]:checked');
+    return !!zone && ['nacional', 'santa_cruz'].includes(zone.value);
+  }
+
+  function syncPaymentAvailability() {
+    if (!cashRadio) return;
+    var disableCash = requiresNonCashPayment();
+    cashRadio.disabled = disableCash;
+    if (cashCard) cashCard.classList.toggle('disabled', disableCash);
+    if (disableCash && cashRadio.checked) {
+      cashRadio.checked = false;
+      if (cashCard) cashCard.classList.remove('selected');
+      if (bankRadio) {
+        bankRadio.checked = true;
+        bankRadio.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      showToast('Para envío nacional o Santa Cruz, el pago en efectivo no está disponible.', 'default');
+    }
+  }
 
   if (btnNext) {
     btnNext.addEventListener('click', function () {
@@ -950,6 +995,10 @@ async function initCheckout() {
     });
   }
 
+  if (!GaiaCart.getItems().length) {
+    _clearDiscount();
+  }
+
   form.querySelectorAll('input[name=delivery_method]').forEach(function (radio) {
     radio.addEventListener('change', function () {
       form.querySelectorAll('input[name=delivery_method]').forEach(function (r) {
@@ -958,7 +1007,17 @@ async function initCheckout() {
       radio.closest && radio.closest('.delivery-card') && radio.closest('.delivery-card').classList.add('selected');
       var ag = document.querySelector('#address-group');
       if (ag) ag.classList.toggle('show', radio.value === 'delivery');
+      var zoneWrap = document.querySelector('#delivery-suboptions');
+      if (zoneWrap) zoneWrap.classList.toggle('show', radio.value === 'delivery');
+      if (radio.value !== 'delivery') {
+        form.querySelectorAll('input[name=delivery_zone]').forEach(function (zoneInput) { zoneInput.checked = false; });
+      }
+      syncPaymentAvailability();
     });
+  });
+
+  form.querySelectorAll('input[name=delivery_zone]').forEach(function (zoneInput) {
+    zoneInput.addEventListener('change', syncPaymentAvailability);
   });
 
   form.querySelectorAll('input[name=payment_method]').forEach(function (radio) {
@@ -975,10 +1034,27 @@ async function initCheckout() {
       if (qrPreview) qrPreview.style.display = showQR ? '' : 'none';
       if (qrName)    qrName.textContent = radio.value === 'banco_union' ? 'Banco Unión' : 'Pago QR';
       var qrMethod = storeData && storeData.payment_methods && storeData.payment_methods.find(function (m) { return m.type === 'qr'; });
-      if (qrPreviewImg)   qrPreviewImg.src = (qrMethod && qrMethod.qr_image) || 'https://placehold.co/200x200/e8d5b0/9e7d4a?text=QR+Pago';
+      if (qrPreviewImg) {
+        qrPreviewImg.src = (qrMethod && qrMethod.qr_image) || 'https://placehold.co/200x200/e8d5b0/9e7d4a?text=QR+Pago';
+        if (qrDownloadBtn) qrDownloadBtn.href = qrPreviewImg.src;
+      }
       if (qrInstructions) qrInstructions.textContent = (qrMethod && qrMethod.instructions) || 'El QR de pago definitivo se generará al confirmar tu pedido.';
     });
   });
+
+  if (qrDownloadBtn) {
+    qrDownloadBtn.addEventListener('click', function (e) {
+      var qrPreviewImg = document.querySelector('#qr-preview-img');
+      if (!qrPreviewImg || !qrPreviewImg.src) {
+        e.preventDefault();
+        showToast('Aun no hay QR disponible para descargar.', 'error');
+        return;
+      }
+      qrDownloadBtn.href = qrPreviewImg.src;
+    });
+  }
+
+  syncPaymentAvailability();
 
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
@@ -996,6 +1072,7 @@ async function initCheckout() {
       delivery_method:  form.delivery_method.value,
       payment_method:   form.payment_method.value,
       notes:            (form.notes && form.notes.value.trim()) || '',
+      cupon_codigo:     (_loadDiscount().code || ''),
       items:            GaiaCart.toCheckoutItems(),
     };
     try {
@@ -1081,15 +1158,69 @@ function renderCartPage() {
 function renderCheckoutSummary(items) {
   var el = document.querySelector('#checkout-items-summary');
   if (!el) return;
-  var total = GaiaCart.getTotal();
+  var subtotal = GaiaCart.getTotal();
+  var discount = _loadDiscount();
+  var discountAmount = Math.min(parseFloat(discount.amount || 0), subtotal);
+  var total = Math.max(subtotal - discountAmount, 0);
   el.innerHTML = '<div class="order-summary">' +
     '<h3 class="order-summary__title">Tu pedido</h3>' +
     items.map(function (i) {
       return '<div class="order-summary__row"><span>' + i.name + (i.variant_label ? ' <small>(' + i.variant_label + ')</small>' : '') + ' × ' + i.quantity + '</span>' +
         '<span>' + formatPrice(i.price * i.quantity) + '</span></div>';
     }).join('') +
-    '<div class="order-summary__total"><span>Total</span><span>' + formatPrice(total) + '</span></div>' +
+    '<div class="order-summary__row"><span>Subtotal</span><span>' + formatPrice(subtotal) + '</span></div>' +
+    '<div class="order-summary__row"><span>Descuento</span><span style="color:#2e7d32">- ' + formatPrice(discountAmount) + '</span></div>' +
+    '<div class="order-summary__total"><span>Nuevo total</span><span>' + formatPrice(total) + '</span></div>' +
+    '<div class="form-group mt-2">' +
+      '<label class="form-label" for="coupon-code">Código de descuento</label>' +
+      '<div style="display:flex;gap:.5rem">' +
+        '<input id="coupon-code" class="form-input" type="text" placeholder="Ej: GAIA10" value="' + (discount.code || '') + '">' +
+        '<button type="button" class="btn btn-ghost" id="btn-apply-coupon">Aplicar</button>' +
+      '</div>' +
+      '<small id="coupon-status" style="display:block;margin-top:.35rem;color:var(--text-light)">' +
+        (discount.code ? ('Cupón aplicado: ' + discount.code) : 'Ingresa tu cupón para calcular el descuento.') +
+      '</small>' +
+    '</div>' +
   '</div>';
+
+  var applyBtn = document.querySelector('#btn-apply-coupon');
+  var codeInput = document.querySelector('#coupon-code');
+  var statusEl = document.querySelector('#coupon-status');
+
+  if (applyBtn && codeInput) {
+    applyBtn.addEventListener('click', async function () {
+      var code = (codeInput.value || '').trim();
+      if (!code) {
+        _clearDiscount();
+        renderCheckoutSummary(items);
+        showToast('Cupón removido.', 'default');
+        return;
+      }
+      applyBtn.disabled = true;
+      applyBtn.textContent = 'Validando...';
+      try {
+        var resp = await GaiaAPI.validateCoupon(code, subtotal);
+        if (!resp || !resp.valido) {
+          _clearDiscount();
+          if (statusEl) statusEl.textContent = (resp && resp.error) || 'Cupón inválido.';
+          showToast((resp && resp.error) || 'Cupón inválido.', 'error');
+          applyBtn.disabled = false;
+          applyBtn.textContent = 'Aplicar';
+          return;
+        }
+        _saveDiscount({ code: code, amount: parseFloat(resp.descuento_aplicado || 0) });
+        renderCheckoutSummary(items);
+        showToast('Cupón aplicado correctamente.', 'success');
+      } catch (err) {
+        _clearDiscount();
+        if (statusEl) statusEl.textContent = err.message || 'No se pudo validar el cupón.';
+        showToast(err.message || 'No se pudo validar el cupón.', 'error');
+      } finally {
+        applyBtn.disabled = false;
+        applyBtn.textContent = 'Aplicar';
+      }
+    });
+  }
 }
 
 function validateStep1(form) {
@@ -1101,6 +1232,10 @@ function validateStep1(form) {
   });
   if (!form.querySelector('input[name=delivery_method]:checked')) {
     showToast('Selecciona un método de entrega.', 'error'); return false;
+  }
+  var deliveryMethod = form.querySelector('input[name=delivery_method]:checked');
+  if (deliveryMethod && deliveryMethod.value === 'delivery' && !form.querySelector('input[name=delivery_zone]:checked')) {
+    showToast('Selecciona la zona de envío.', 'error'); return false;
   }
   if (!ok) showToast('Completa los campos obligatorios.', 'error');
   return ok;
@@ -1115,6 +1250,10 @@ function validateCheckoutForm(form) {
   });
   if (!form.querySelector('input[name=delivery_method]:checked')) {
     showToast('Selecciona un método de entrega.', 'error'); return false;
+  }
+  var deliveryMethod = form.querySelector('input[name=delivery_method]:checked');
+  if (deliveryMethod && deliveryMethod.value === 'delivery' && !form.querySelector('input[name=delivery_zone]:checked')) {
+    showToast('Selecciona la zona de envío.', 'error'); return false;
   }
   if (!form.querySelector('input[name=payment_method]:checked')) {
     showToast('Selecciona un método de pago.', 'error'); return false;

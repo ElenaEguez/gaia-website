@@ -133,6 +133,20 @@ async function checkout(orderData) {
 }
 
 /**
+ * Validar cupón público para tienda web.
+ * @param {string} code
+ * @param {number|string} total
+ * @returns {Promise<{valido:boolean,descuento_aplicado:string,tipo:string,valor:string,error?:string}>}
+ */
+async function validateCoupon(code, total) {
+  const params = new URLSearchParams();
+  params.set('vendor_slug', VENDOR_SLUG);
+  params.set('codigo', (code || '').trim());
+  params.set('total', String(total || 0));
+  return _request(`${PUBLIC_API_ORIGIN}/api/v1/cupones/public/validar/?${params.toString()}`);
+}
+
+/**
  * Consulta el estado de un pedido por ID.
  * @param {number|string} id
  * @returns {Promise<CartOrder>}
@@ -185,6 +199,7 @@ window.GaiaAPI = {
   getProducts,
   getProduct,
   getCategories,
+  validateCoupon,
   checkout,
   getOrder,
   uploadReceipt,

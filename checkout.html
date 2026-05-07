@@ -48,6 +48,14 @@
 
     #address-group { display: none; margin-top: 1rem; }
     #address-group.show { display: block; }
+    .delivery-suboptions { margin-top: 1rem; display: none; }
+    .delivery-suboptions.show { display: block; }
+    .delivery-suboptions .form-label { margin-bottom: .55rem; display: block; }
+    .delivery-suboptions__list { display: grid; gap: .45rem; }
+    .delivery-suboptions__item {
+      display: flex; gap: .55rem; align-items: center;
+      font-size: .88rem; color: var(--secondary);
+    }
 
     /* Payment cards */
     .payment-options { display: grid; grid-template-columns: repeat(2,1fr); gap: .75rem; margin-top: .5rem; }
@@ -63,6 +71,12 @@
     .payment-card__icon  { font-size: 1.5rem; margin-bottom: .4rem; }
     .payment-card__label { font-size: .85rem; font-weight: 500; color: var(--secondary); }
     .payment-card__sub   { font-size: .72rem; color: var(--text-light); margin-top: .15rem; }
+    .payment-card.disabled {
+      opacity: .55;
+      cursor: not-allowed;
+      pointer-events: none;
+      filter: grayscale(.12);
+    }
 
     /* QR preview */
     #payment-qr-preview {
@@ -81,6 +95,7 @@
     }
     #payment-qr-preview p { font-size: .85rem; color: var(--text-light); }
     #payment-qr-preview strong { color: var(--secondary); }
+    #btn-download-qr { margin-top: .55rem; }
 
     /* Sticky summary */
     #checkout-items-summary { position: sticky; top: calc(var(--navbar-h) + 1rem); }
@@ -218,6 +233,19 @@
                   </label>
                 </div>
                 <div id="address-group">
+                  <div class="delivery-suboptions" id="delivery-suboptions">
+                    <label class="form-label">Zona de envío <span class="req">*</span></label>
+                    <div class="delivery-suboptions__list">
+                      <label class="delivery-suboptions__item">
+                        <input type="radio" name="delivery_zone" value="santa_cruz">
+                        Envío departamento de Santa Cruz
+                      </label>
+                      <label class="delivery-suboptions__item">
+                        <input type="radio" name="delivery_zone" value="nacional">
+                        Envío nacional
+                      </label>
+                    </div>
+                  </div>
                   <div class="form-group">
                     <label class="form-label" for="customer_address">
                       Dirección de entrega <span class="req">*</span>
@@ -266,6 +294,9 @@
                     <strong id="qr-method-name">Banco Unión</strong><br>
                     El QR de pago definitivo se generará al confirmar tu pedido.
                   </p>
+                  <a id="btn-download-qr" class="btn btn-ghost" href="#" download="gaia-qr-pago.png">
+                    Descargar QR
+                  </a>
                 </div>
               </div>
 
