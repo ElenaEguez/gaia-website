@@ -8,6 +8,171 @@ var _productCache = new Map();
 
 // ── Navbar ─────────────────────────────────────────────────────────────────────
 
+/**
+ * Búsqueda del header: Enter envía a la tienda o actualiza resultados en tienda.html.
+ */
+function _tiendaSearchHref(query) {
+  var q = query || '';
+  try {
+    return new URL('tienda.html' + (q ? '?search=' + encodeURIComponent(q) : ''), window.location.href).href;
+  } catch (_) {
+    return 'tienda.html' + (q ? '?search=' + encodeURIComponent(q) : '');
+  }
+}
+
+function initSiteSearch() {
+  var input = document.querySelector('#search-input');
+  if (!input) return;
+
+  function submitSearch() {
+    var q = (input.value || '').trim();
+    if (document.body.dataset.page === 'tienda' && typeof window.__tiendaApplySearch === 'function') {
+      window.__tiendaApplySearch(q);
+    } else {
+      window.location.href = _tiendaSearchHref(q);
+    }
+  }
+
+  input.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    submitSearch();
+  });
+
+  var searchBtn = document.querySelector('.btn-search');
+  if (searchBtn) {
+    searchBtn.addEventListener('click', function () {
+      input.focus({ preventScroll: false });
+      try {
+        input.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch (_) {}
+    });
+  }
+
+  var closeBtn = document.querySelector('#search-close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function () {
+      input.value = '';
+      input.blur();
+      if (document.body.dataset.page === 'tienda' && typeof window.__tiendaApplySearch === 'function') {
+        window.__tiendaApplySearch('');
+      }
+    });
+  }
+}
+
+/**
+ * Submenú "Tienda": botón ▾ para táctil; clic fuera o Escape cierra.
+ */
+function initNavDropdowns() {
+  var items = document.querySelectorAll('.nav-item.has-dropdown');
+  if (!items.length) return;
+
+  function closeAll() {
+    items.forEach(function (item) {
+      item.classList.remove('is-open');
+      var t = item.querySelector('.nav-dropdown-toggle');
+      if (t) t.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  items.forEach(function (item) {
+    var toggle = item.querySelector('.nav-dropdown-toggle');
+    var menu = item.querySelector('.dropdown-menu');
+    if (toggle) {
+      toggle.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var willOpen = !item.classList.contains('is-open');
+        closeAll();
+        if (willOpen) {
+          item.classList.add('is-open');
+          toggle.setAttribute('aria-expanded', 'true');
+        }
+      });
+    }
+    if (menu) {
+      menu.addEventListener('click', function (e) {
+        if (e.target.closest('a')) closeAll();
+      });
+    }
+  });
+
+  document.addEventListener('click', function () {
+    closeAll();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeAll();
+  });
+}
+
+/**
+ * Menú hamburguesa (móvil): panel lateral, velo y cierre por Escape / resize.
+ */
+function initMobileNav() {
+  var header = document.getElementById('site-header');
+  var btn = document.getElementById('btn-menu');
+  var nav = document.getElementById('main-nav');
+  if (!header || !btn || !nav) return;
+
+  var overlay = document.getElementById('nav-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'nav-overlay';
+    overlay.className = 'nav-overlay';
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(overlay);
+  }
+
+  function closeDropdownsInNav() {
+    nav.querySelectorAll('.nav-item.has-dropdown.is-open').forEach(function (li) {
+      li.classList.remove('is-open');
+      var t = li.querySelector('.nav-dropdown-toggle');
+      if (t) t.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  function setOpen(open) {
+    var o = !!open;
+    header.classList.toggle('is-nav-open', o);
+    document.body.classList.toggle('menu-open', o);
+    document.body.style.overflow = o ? 'hidden' : '';
+    btn.setAttribute('aria-expanded', o ? 'true' : 'false');
+    btn.setAttribute('aria-label', o ? 'Cerrar menú' : 'Abrir menú');
+    overlay.classList.toggle('nav-overlay--visible', o);
+    overlay.setAttribute('aria-hidden', o ? 'false' : 'true');
+    if (!o) closeDropdownsInNav();
+  }
+
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    setOpen(!header.classList.contains('is-nav-open'));
+  });
+
+  overlay.addEventListener('click', function () {
+    setOpen(false);
+  });
+
+  nav.addEventListener('click', function (e) {
+    if (e.target.closest('a')) setOpen(false);
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && header.classList.contains('is-nav-open')) setOpen(false);
+  });
+
+  var mql = window.matchMedia('(min-width: 901px)');
+  function onBreakChange() {
+    if (mql.matches) setOpen(false);
+  }
+  if (typeof mql.addEventListener === 'function') {
+    mql.addEventListener('change', onBreakChange);
+  } else if (typeof mql.addListener === 'function') {
+    mql.addListener(onBreakChange);
+  }
+}
+
 function initNavbar() {
   // Cart count — nuevo header (#cart-count) y viejo (#cart-badge)
   var cartCount = document.querySelector('#cart-count');
@@ -367,7 +532,8 @@ async function initTienda() {
 
     var found = (cats || []).find(function (c) {
       var slug = _slugifyCategory(c.name);
-      return slug === candidate;
+      var apiSlug = String(c.slug || '').toLowerCase();
+      return slug === candidate || apiSlug === candidate;
     });
     if (found) return String(found.id);
 
@@ -391,6 +557,18 @@ async function initTienda() {
   }
 
   if (sortSelect && currentOrdering) sortSelect.value = currentOrdering;
+
+  var searchInput = document.querySelector('#search-input');
+  if (searchInput && currentSearch) searchInput.value = currentSearch;
+
+  window.__tiendaApplySearch = function (q) {
+    currentSearch = q || '';
+    currentPage = 1;
+    if (searchInput) searchInput.value = currentSearch;
+    syncUrl();
+    renderActiveFilters();
+    loadProducts();
+  };
 
   // Mobile filter toggle
   if (filterToggle && filterPanel) {
@@ -434,6 +612,7 @@ async function initTienda() {
   };
   window.clearSearch = function () {
     currentSearch = ''; currentPage = 1;
+    if (searchInput) searchInput.value = '';
     syncUrl(); renderActiveFilters(); loadProducts();
   };
 
@@ -554,6 +733,7 @@ async function initTienda() {
       currentOrdering = '';
       currentPage     = 1;
       if (sortSelect) sortSelect.value = '';
+      if (searchInput) searchInput.value = '';
       if (catList) {
         catList.querySelectorAll('li').forEach(function (l) { l.classList.remove('active'); });
         var allLi = catList.querySelector('[data-cat-id=""]');
@@ -565,7 +745,8 @@ async function initTienda() {
     });
   }
 
-  await Promise.all([loadCategories(), loadProducts()]);
+  await loadCategories();
+  await loadProducts();
 }
 
 // ── PRODUCTO DETALLE (producto.html) ───────────────────────────────────────────
@@ -1444,6 +1625,9 @@ window.switchImg = function (src, thumbEl) {
 
 document.addEventListener('DOMContentLoaded', function () {
   initNavbar();
+  initMobileNav();
+  initNavDropdowns();
+  initSiteSearch();
   _initStoreLinks();
 
   var page = document.body.dataset.page;

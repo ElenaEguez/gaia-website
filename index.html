@@ -186,9 +186,12 @@
 
       <ul class="main-nav" id="main-nav" role="list">
         <li class="nav-item has-dropdown">
-          <a href="tienda.html" class="nav-link">
-            Tienda <span class="chevron">▾</span>
-          </a>
+          <div class="nav-dropdown-head">
+            <a href="tienda.html" class="nav-link">Tienda</a>
+            <button type="button" class="nav-dropdown-toggle" aria-expanded="false" aria-haspopup="true" aria-label="Categorías de la tienda">
+              <span class="chevron" aria-hidden="true">▾</span>
+            </button>
+          </div>
           <ul class="dropdown-menu" role="list">
             <li><a href="tienda.html">Ver Todo</a></li>
             <li><a href="tienda.html?category=vestidos">Vestidos</a></li>
@@ -220,7 +223,7 @@
           </svg>
           <span class="cart-count" id="cart-count" data-count="0">0</span>
         </a>
-        <button class="btn-menu" id="btn-menu" aria-label="Abrir menú" aria-expanded="false">
+        <button class="btn-menu" id="btn-menu" type="button" aria-controls="main-nav" aria-expanded="false" aria-label="Abrir menú">
           <span></span><span></span><span></span>
         </button>
       </div>
