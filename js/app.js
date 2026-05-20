@@ -318,6 +318,42 @@ window.getVariantColorValue = getVariantColorValue;
 function colorNameToHex(name) { return getColorFallback(name); }
 window.colorNameToHex = colorNameToHex;
 
+// ── Etiquetas de tarjeta (stock, descuento, destacados web) ───────────────────
+
+function productHasStock(product) {
+  if (product.stock_available === false) return false;
+  if (product.stock_available === true) return true;
+  var variants = product.variants || [];
+  if (variants.length) {
+    return variants.some(function (v) {
+      return v.disponible !== false && (v.stock > 0 || v.disponible === true);
+    });
+  }
+  return true;
+}
+
+function getProductBadge(product) {
+  if (!productHasStock(product)) {
+    return { text: 'Sin stock', className: 'product-card__badge--out' };
+  }
+  if (product.discount_percent) {
+    return { text: product.discount_percent + '% OFF', className: 'product-card__badge--sale' };
+  }
+  if (product.web_is_new) {
+    return { text: 'Nuevo', className: 'product-card__badge--new' };
+  }
+  if (product.web_is_bestseller) {
+    return { text: 'Más vendido', className: 'product-card__badge--bestseller' };
+  }
+  return null;
+}
+
+function formatPriceAmount(amount) {
+  return parseFloat(amount || 0).toLocaleString('es-BO', {
+    minimumFractionDigits: 2, maximumFractionDigits: 2
+  });
+}
+
 // ── RENDER PRODUCT CARD (nuevo diseño editorial) ───────────────────────────────
 
 function renderProductCard(product) {
@@ -330,9 +366,14 @@ function renderProductCard(product) {
   var mainImg  = (images[0] && (images[0].image || images[0].url)) || '';
   var hoverImg = (images[1] && (images[1].image || images[1].url)) || '';
 
-  var price = parseFloat(product.price || 0).toLocaleString('es-BO', {
-    minimumFractionDigits: 2, maximumFractionDigits: 2
-  });
+  var price = formatPriceAmount(product.price);
+  var transferPrice = product.transfer_price
+    ? formatPriceAmount(product.transfer_price)
+    : null;
+  var badge = getProductBadge(product);
+  var badgeHtml = badge
+    ? '<span class="product-card__badge ' + badge.className + '">' + badge.text + '</span>'
+    : '';
 
   // Colores únicos desde variantes
   var colorData = [];
@@ -369,6 +410,7 @@ function renderProductCard(product) {
         ? '<img class="product-card__img" src="' + mainImg + '" alt="' + product.name + '" loading="lazy" onerror="handleImgError(this)">'
         : '<img class="product-card__img" src="https://placehold.co/600x800/faf7f5/c78271?text=GAIA" alt="' + product.name + '">') +
       hoverImgHtml +
+      badgeHtml +
       '<div class="product-card__overlay">' +
         '<button class="btn-add-cart" onclick="addToCart(event,' + product.id + ',' + hasVariants + ')">' +
           (hasVariants ? 'Ver opciones' : 'Añadir al carrito') +
@@ -379,6 +421,9 @@ function renderProductCard(product) {
       '<a href="producto.html?id=' + product.id + '" style="text-decoration:none">' +
         '<h3 class="product-card__name">' + product.name + '</h3>' +
         '<p class="product-card__price">Bs. ' + price + '</p>' +
+        (transferPrice
+          ? '<p class="product-card__transfer">Bs. ' + transferPrice + ' con Transferencia</p>'
+          : '') +
       '</a>' +
       swatchesHtml +
     '</div>' +
@@ -416,17 +461,17 @@ window.quickAddToCart = quickAddToCart;
 // ── HOME (index.html) ──────────────────────────────────────────────────────────
 
 async function initHome() {
-  var featuredGrid = document.querySelector('#featured-products');
-  var latestGrid   = document.querySelector('#latest-products');
-  var catsVisual   = document.querySelector('#categories-visual');
+  var bestSellersGrid = document.querySelector('#best-sellers');
+  var newArrivalsGrid = document.querySelector('#new-arrivals');
+  var catsVisual      = document.querySelector('#categories-visual');
 
   // Skeletons
   function skeletons(grid, n) {
     if (!grid) return;
     grid.innerHTML = Array(n || 8).fill('<div class="product-skeleton"></div>').join('');
   }
-  skeletons(featuredGrid, 8);
-  skeletons(latestGrid, 4);
+  skeletons(bestSellersGrid, 8);
+  skeletons(newArrivalsGrid, 4);
 
   // Info de la tienda
   try {
@@ -459,34 +504,36 @@ async function initHome() {
     }
   } catch (_) {}
 
-  // Productos destacados (primeros 8 de la primera página)
+  // Más vendidos (marcados en panel + activos en web)
   try {
-    var data = await GaiaAPI.getProducts({ page: 1 });
-    var results = data.results || [];
-    if (featuredGrid) {
-      featuredGrid.innerHTML = results.length
-        ? results.slice(0, 8).map(renderProductCard).join('')
-        : '<div class="empty-state" style="grid-column:1/-1"><div class="empty-state__icon">🌿</div><p>No hay productos disponibles aún.</p></div>';
-      if (results.length && window.animateCards) animateCards('#featured-products');
+    var bestsellers = await GaiaAPI.getProducts({ bestseller: true, page: 1, page_size: 8 });
+    var bsResults = bestsellers.results || [];
+    if (bestSellersGrid) {
+      bestSellersGrid.innerHTML = bsResults.length
+        ? bsResults.map(renderProductCard).join('')
+        : '<div class="empty-state" style="grid-column:1/-1"><div class="empty-state__icon">🌿</div>' +
+          '<p>Aún no hay productos en «Más vendidos».<br><small>Márcalos desde el panel de productos.</small></p></div>';
+      if (bsResults.length && window.animateCards) animateCards('#best-sellers');
     }
   } catch (e) {
-    if (featuredGrid) featuredGrid.innerHTML =
+    if (bestSellersGrid) bestSellersGrid.innerHTML =
       '<div class="empty-state" style="grid-column:1/-1"><div class="empty-state__icon">⚠️</div>' +
       '<p>No se pudieron cargar los productos.<br><small>' + (e.message || '') + '</small></p></div>';
   }
 
-  // Últimas novedades (ordering por -id, últimos 4)
+  // Nuevos ingresos (marcados en panel)
   try {
-    var latest = await GaiaAPI.getProducts({ ordering: '-id', page: 1 });
-    var latestResults = latest.results || [];
-    if (latestGrid) {
-      latestGrid.innerHTML = latestResults.length
-        ? latestResults.slice(0, 4).map(renderProductCard).join('')
-        : '';
-      if (latestResults.length && window.animateCards) animateCards('#latest-products');
+    var newest = await GaiaAPI.getProducts({ new: true, ordering: '-created_at', page: 1, page_size: 4 });
+    var newResults = newest.results || [];
+    if (newArrivalsGrid) {
+      newArrivalsGrid.innerHTML = newResults.length
+        ? newResults.map(renderProductCard).join('')
+        : '<div class="empty-state" style="grid-column:1/-1"><div class="empty-state__icon">✨</div>' +
+          '<p>No hay nuevos ingresos por ahora.<br><small>Activa «Nuevos ingresos» en el producto desde el panel.</small></p></div>';
+      if (newResults.length && window.animateCards) animateCards('#new-arrivals');
     }
   } catch (_) {
-    if (latestGrid) latestGrid.innerHTML = '';
+    if (newArrivalsGrid) newArrivalsGrid.innerHTML = '';
   }
 }
 

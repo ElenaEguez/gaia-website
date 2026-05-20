@@ -90,6 +90,8 @@ async function getProducts(filters = {}) {
   if (filters.page)      params.set('page',      filters.page);
   if (filters.ordering)  params.set('ordering',  filters.ordering);
   if (filters.page_size) params.set('page_size', filters.page_size);
+  if (filters.bestseller) params.set('bestseller', '1');
+  if (filters.new)        params.set('new',        '1');
   const qs = params.toString();
   return _request(`${API_BASE}/products/${qs ? '?' + qs : ''}`);
 }
