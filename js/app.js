@@ -846,12 +846,22 @@ function renderProductDetail(p, container) {
   if (hasColors) {
     var colorNames = [];
     var seen = {};
-    variants.forEach(function (v) { if (v.color && !seen[v.color]) { seen[v.color] = true; colorNames.push(v.color); } });
+    var variantMap = {};
+    variants.forEach(function (v) {
+      if (v.color && !seen[v.color]) {
+        seen[v.color] = true;
+        colorNames.push(v.color);
+      }
+      if (v.color) {
+        variantMap[v.color] = v.color_hex || null;
+      }
+    });
     colorHtml = '<div class="detail-option">' +
       '<p class="option-label">COLOR: <strong id="selected-color-name"></strong></p>' +
       '<div class="detail-swatches" id="color-swatches">' +
         colorNames.map(function (c) {
-          return '<button class="swatch-detail" style="background-color:' + getColorFallback(c) + '"' +
+          var hex = variantMap[c] || getColorFallback(c);
+          return '<button class="swatch-detail" style="background-color:' + hex + '"' +
             ' data-color="' + c + '" title="' + c + '" onclick="selectDetailColor(\'' + c + '\',this)"></button>';
         }).join('') +
       '</div>' +
