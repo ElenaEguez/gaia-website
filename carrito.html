@@ -4,9 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Carrito — Gaia Bolivia Beauty</title>
-  <link rel="stylesheet" href="css/base.css?v=20260430-2">
-  <link rel="stylesheet" href="css/components.css?v=20260430-2">
-  <link rel="stylesheet" href="css/layout.css?v=20260430-2">
+  <link rel="stylesheet" href="css/base.css?v=20260626-3">
+  <link rel="stylesheet" href="css/components.css?v=20260626-3">
+  <link rel="stylesheet" href="css/layout.css?v=20260626-3">
+  <link rel="stylesheet" href="css/variables.css?v=20260626-3">
+  <link rel="stylesheet" href="css/header.css?v=20260626-3">
   <style>
     /* ── Page header ── */
     .cart-header {
@@ -26,7 +28,7 @@
     @media (max-width: 900px) {
       .cart-layout { grid-template-columns: 1fr; }
     }
-    #cart-summary { position: sticky; top: calc(var(--navbar-h) + 1rem); }
+    #cart-summary { position: sticky; top: 6rem; }
 
     /* ── Cart table ── */
     .cart-table { width: 100%; }
@@ -109,37 +111,62 @@
 </head>
 <body data-page="carrito">
 
-  <!-- Navbar -->
-  <nav class="navbar" role="navigation" aria-label="Navegación principal">
-    <div class="navbar__inner">
-      <a href="index.html" class="navbar__logo">
-        <img src="assets/gaia-logo-header.png" alt="Gaia Bolivia" onerror="this.style.display='none'">
+  <div class="announcement-bar">
+    Envíos a todo Bolivia &nbsp;·&nbsp; Paga con QR &nbsp;·&nbsp;
+    <a href="#" data-whatsapp>Escríbenos por WhatsApp</a>
+  </div>
+
+  <header class="site-header" id="site-header" role="banner">
+    <div class="header-inner">
+      <a href="index.html" class="site-logo" aria-label="Gaia Bolivia — Inicio">
+        <img src="assets/gaia-logo-header.png" alt="Gaia Bolivia" class="site-logo__img"
+             onerror="this.style.display='none'">
       </a>
-      <ul class="navbar__nav" role="list">
-        <li><a href="index.html">Inicio</a></li>
-        <li><a href="tienda.html">Tienda</a></li>
-        <li><a href="tienda.html?category=vestidos">Vestidos</a></li>
-        <li><a href="tienda.html?category=blusas">Blusas &amp; Tops</a></li>
-        <li><a href="nosotros.html">Nosotros</a></li>
-        <li><a href="contacto.html">Contacto</a></li>
+      <ul class="main-nav" id="main-nav" role="list">
+        <li class="nav-item has-dropdown">
+          <div class="nav-dropdown-head">
+            <a href="tienda.html" class="nav-link">Tienda</a>
+            <button type="button" class="nav-dropdown-toggle" aria-expanded="false" aria-haspopup="true" aria-label="Categorías de la tienda">
+              <span class="chevron" aria-hidden="true">▾</span>
+            </button>
+          </div>
+          <ul class="dropdown-menu" role="list">
+            <li><a href="tienda.html">Ver Todo</a></li>
+            <li><a href="tienda.html?category=vestidos">Vestidos</a></li>
+            <li><a href="tienda.html?category=blusas">Blusas &amp; Tops</a></li>
+            <li><a href="tienda.html?category=pantalones">Pantalones</a></li>
+            <li><a href="tienda.html?category=faldas">Faldas</a></li>
+            <li><a href="tienda.html?category=accesorios">Accesorios</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="tienda.html?category=vestidos" class="nav-link">Vestidos</a></li>
+        <li class="nav-item"><a href="tienda.html?category=blusas" class="nav-link">Blusas &amp; Tops</a></li>
+        <li class="nav-item"><a href="nosotros.html" class="nav-link">Nosotros</a></li>
+        <li class="nav-item"><a href="contacto.html" class="nav-link">Contacto</a></li>
       </ul>
-      <div class="navbar__actions">
-        <a href="carrito.html" class="cart-btn" aria-label="Ver carrito">
-          🛒 <span class="badge" id="cart-badge" style="display:none">0</span>
+      <div class="search-bar" id="search-bar" role="search">
+        <input id="search-input" type="text" placeholder="Buscar" autocomplete="off" aria-label="Buscar productos">
+        <span class="search-bar__icon" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+        </span>
+        <button id="search-close" class="search-bar__close" aria-label="Cerrar búsqueda">✕</button>
+      </div>
+      <div class="header-actions">
+        <button class="btn-icon btn-search btn-search-mobile" aria-label="Buscar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+        </button>
+        <a href="carrito.html" class="btn-icon" aria-label="Ver carrito" style="position:relative;text-decoration:none;color:inherit">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+          <span class="cart-count" id="cart-count" data-count="0">0</span>
         </a>
-        <button class="hamburger" aria-label="Menú" aria-expanded="false">
+        <button class="btn-menu" id="btn-menu" type="button" aria-controls="main-nav" aria-expanded="false" aria-label="Abrir menú">
           <span></span><span></span><span></span>
         </button>
       </div>
     </div>
-  </nav>
-  <div class="mobile-nav">
-    <a href="index.html">Inicio</a>
-    <a href="tienda.html">Tienda</a>
-    <a href="carrito.html">🛒 Carrito</a>
-  </div>
+  </header>
 
-  <main class="page-content">
+  <main>
 
     <div class="cart-header">
       <div class="container">
@@ -193,8 +220,8 @@
 
   <a class="whatsapp-fab" href="#" data-whatsapp aria-label="WhatsApp">💬</a>
 
-  <script src="js/api.js?v=20260430-2"></script>
-  <script src="js/cart.js?v=20260430-2"></script>
-  <script src="js/app.js?v=20260430-2"></script>
+  <script src="js/api.js?v=20260626-3"></script>
+  <script src="js/cart.js?v=20260626-3"></script>
+  <script src="js/app.js?v=20260626-3"></script>
 </body>
 </html>
