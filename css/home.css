@@ -1,33 +1,30 @@
 .hero-slim {
-  min-height: min(74vh, 700px);
-  display: flex;
-  align-items: flex-end;
+  display: block;
   position: relative;
-  background:
-    linear-gradient(120deg, rgba(0, 0, 0, .52) 0%, rgba(0, 0, 0, .18) 55%, rgba(0, 0, 0, .05) 100%),
-    url("https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1800&q=80") center/cover no-repeat;
+  aspect-ratio: 16 / 6;
+  min-height: 280px;
+  max-height: min(74vh, 700px);
+  background: url("../assets/portada-gaia.png") center / cover no-repeat;
 }
-.hero-slim-inner {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  width: 100%;
-  padding: 5rem 1.5rem 4.5rem;
-  color: #fff;
+.hero-slim--link {
+  display: block;
+  text-decoration: none;
+  cursor: pointer;
 }
-.hero-eyebrow {
-  color: rgba(255, 255, 255, .92);
-  text-transform: uppercase;
-  letter-spacing: .14em;
-  font-size: .72rem;
-  margin-bottom: .85rem;
+.hero-slim--link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
 }
-.hero-title {
-  color: #fff;
-  font-family: var(--font-serif);
-  font-weight: 500;
-  line-height: 1.02;
-  font-size: clamp(2.35rem, 6vw, 4.9rem);
-  margin-bottom: 1.3rem;
+.hero-slim__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .section-products,
@@ -156,8 +153,11 @@
   .categories-grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 640px) {
-  .hero-slim { min-height: 60vh; }
-  .hero-slim-inner { padding: 3.5rem 1rem 2.8rem; }
+  .hero-slim {
+    aspect-ratio: 4 / 3;
+    min-height: 220px;
+    max-height: none;
+  }
   .section-products,
   .section-categories { padding: 2.1rem 1rem; }
   .categories-grid { grid-template-columns: 1fr; }

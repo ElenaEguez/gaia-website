@@ -367,9 +367,6 @@ function renderProductCard(product) {
   var hoverImg = (images[1] && (images[1].image || images[1].url)) || '';
 
   var price = formatPriceAmount(product.price);
-  var transferPrice = product.transfer_price
-    ? formatPriceAmount(product.transfer_price)
-    : null;
   var badge = getProductBadge(product);
   var badgeHtml = badge
     ? '<span class="product-card__badge ' + badge.className + '">' + badge.text + '</span>'
@@ -421,9 +418,6 @@ function renderProductCard(product) {
       '<a href="producto.html?id=' + product.id + '" style="text-decoration:none">' +
         '<h3 class="product-card__name">' + product.name + '</h3>' +
         '<p class="product-card__price">Bs. ' + price + '</p>' +
-        (transferPrice
-          ? '<p class="product-card__transfer">Bs. ' + transferPrice + ' con Transferencia</p>'
-          : '') +
       '</a>' +
       swatchesHtml +
     '</div>' +
