@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="css/layout.css?v=20260626-3">
   <link rel="stylesheet" href="css/variables.css?v=20260626-3">
   <link rel="stylesheet" href="css/header.css?v=20260626-3">
-  <link rel="stylesheet" href="css/products.css?v=20260627-1">
+  <link rel="stylesheet" href="css/products.css?v=20260627-2">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
   <style>
@@ -161,11 +161,17 @@
         <!-- ─── Filter panel ─── -->
         <aside class="filter-panel" id="filter-panel" aria-label="Filtros">
 
-          <div class="filter-group">
-            <p class="filter-group-title">Categoría</p>
-            <ul class="filter-list" id="filter-categories" role="listbox" aria-label="Filtrar por categoría">
-              <li class="active" data-cat-id=""><span>Todas las categorías</span></li>
-            </ul>
+          <div class="filter-group filter-group--collapsible" id="filter-group-categories">
+            <button type="button" class="filter-group-title" id="filter-cat-toggle"
+                    aria-expanded="true" aria-controls="filter-categories-wrap">
+              Categoría
+              <span class="filter-chevron" aria-hidden="true">▾</span>
+            </button>
+            <div class="filter-group-body" id="filter-categories-wrap">
+              <ul class="filter-list" id="filter-categories" role="listbox" aria-label="Filtrar por categoría">
+                <li class="active" data-cat-id=""><span>Todas las categorías</span></li>
+              </ul>
+            </div>
           </div>
 
           <button class="btn-clear-filters" id="btn-clear-filters">
@@ -265,9 +271,9 @@
   </a>
 
   <script src="js/api.js?v=20260626-3"></script>
-  <script src="js/cart.js?v=20260626-3"></script>
+  <script src="js/cart.js?v=20260627-2"></script>
   <script src="js/animations.js?v=20260626-3"></script>
-  <script src="js/app.js?v=20260627-1"></script>
+  <script src="js/app.js?v=20260627-2"></script>
 
 </body>
 </html>

@@ -338,6 +338,66 @@ function variantHasStock(v) {
   return (v.stock || 0) > 0;
 }
 
+function getVariantStock(v) {
+  if (!v) return 0;
+  return Math.max(0, parseInt(v.stock, 10) || 0);
+}
+
+function getProductStockTotal(product) {
+  if (!product) return 0;
+  if (product.stock_total != null) {
+    return Math.max(0, parseInt(product.stock_total, 10) || 0);
+  }
+  var variants = product.variants || [];
+  if (variants.length) {
+    return variants.reduce(function (sum, v) { return sum + getVariantStock(v); }, 0);
+  }
+  if (product.stock_available === false) return 0;
+  return null;
+}
+
+function _updateStockHint(maxStock) {
+  var hint = document.querySelector('#stock-hint');
+  if (!hint) return;
+  if (maxStock == null) {
+    hint.textContent = '';
+    hint.className = 'stock-hint';
+    return;
+  }
+  if (maxStock <= 0) {
+    hint.textContent = 'Sin stock';
+    hint.className = 'stock-hint stock-hint--out';
+    return;
+  }
+  hint.textContent = maxStock === 1 ? '1 unidad disponible' : maxStock + ' unidades disponibles';
+  hint.className = 'stock-hint';
+}
+
+function _setDetailQtyMax(maxStock) {
+  var qtyEl = document.querySelector('#qty-value, #detail-qty');
+  var plusBtn = document.querySelector('#qty-plus-btn');
+  var cap = maxStock == null ? 99 : Math.max(1, maxStock);
+  if (qtyEl) {
+    qtyEl.dataset.max = String(cap);
+    window._detailQty = Math.min(window._detailQty || 1, cap);
+    qtyEl.textContent = window._detailQty;
+  }
+  if (plusBtn) plusBtn.disabled = maxStock != null && window._detailQty >= maxStock;
+  _updateStockHint(maxStock);
+}
+
+function getMaxStockForSelection(product, variantObj) {
+  if (!product) return 0;
+  if (variantObj && variantObj.id) {
+    var v = (product.variants || []).find(function (x) { return x.id === variantObj.id; });
+    return v ? getVariantStock(v) : 0;
+  }
+  if ((product.variants || []).length) return 0;
+  var total = getProductStockTotal(product);
+  if (total != null) return total;
+  return product.stock_available === false ? 0 : null;
+}
+
 function getProductBadge(product) {
   if (!productHasStock(product)) {
     return { text: 'Sin stock', className: 'product-card__badge--out' };
@@ -446,14 +506,22 @@ window.addToCart = function (event, productId, hasVariants) {
     return;
   }
 
-  GaiaCart.addItem(product, null, 1);
+  var result = GaiaCart.addItem(product, null, 1);
+  if (!result.ok) {
+    showToast(result.message || 'Stock insuficiente', 'error');
+    return;
+  }
   showToast(product.name + ' añadido al carrito', 'success');
 };
 
 // ── quickAddToCart (legacy) ────────────────────────────────────────────────────
 
 function quickAddToCart(id, name, price, img) {
-  GaiaCart.addItem({ id: id, name: name, price: price, images: img ? [{ image: img }] : [] }, null, 1);
+  var result = GaiaCart.addItem({ id: id, name: name, price: price, images: img ? [{ image: img }] : [] }, null, 1);
+  if (!result.ok) {
+    showToast(result.message || 'Stock insuficiente', 'error');
+    return;
+  }
   showToast(name + ' añadido al carrito', 'success');
 }
 window.quickAddToCart = quickAddToCart;
@@ -620,8 +688,38 @@ async function initTienda() {
   // Mobile filter toggle
   if (filterToggle && filterPanel) {
     filterToggle.addEventListener('click', function () {
-      filterPanel.classList.toggle('open');
+      var isOpen = filterPanel.classList.toggle('open');
+      filterToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     });
+  }
+
+  var filterCatToggle = document.querySelector('#filter-cat-toggle');
+  var filterCatGroup  = document.querySelector('#filter-group-categories');
+  if (filterCatToggle && filterCatGroup) {
+    var mq = window.matchMedia('(max-width: 980px)');
+    function syncCatAccordion() {
+      if (mq.matches) {
+        filterCatGroup.classList.remove('is-open');
+        filterCatToggle.setAttribute('aria-expanded', 'false');
+      } else {
+        filterCatGroup.classList.add('is-open');
+        filterCatToggle.setAttribute('aria-expanded', 'true');
+      }
+    }
+    filterCatToggle.addEventListener('click', function () {
+      if (!mq.matches) return;
+      var isOpen = filterCatGroup.classList.toggle('is-open');
+      filterCatToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+    syncCatAccordion();
+    if (mq.addEventListener) mq.addEventListener('change', syncCatAccordion);
+    else mq.addListener(syncCatAccordion);
+  }
+
+  function closeMobileFilters() {
+    if (!window.matchMedia('(max-width: 980px)').matches) return;
+    if (filterPanel) filterPanel.classList.remove('open');
+    if (filterToggle) filterToggle.setAttribute('aria-expanded', 'false');
   }
 
   function syncUrl() {
@@ -751,6 +849,7 @@ async function initTienda() {
         syncUrl();
         renderActiveFilters();
         loadProducts();
+        closeMobileFilters();
       });
 
       renderActiveFilters();
@@ -912,13 +1011,14 @@ function renderProductDetail(p, container) {
         '<div class="detail-option">' +
           '<p class="option-label">CANTIDAD</p>' +
           '<div class="qty-selector">' +
-            '<button class="qty-btn" onclick="changeDetailQty(-1)">−</button>' +
-            '<span class="qty-value" id="qty-value" data-max="999">1</span>' +
-            '<button class="qty-btn" onclick="changeDetailQty(1)">+</button>' +
+            '<button type="button" class="qty-btn" onclick="changeDetailQty(-1)" aria-label="Quitar uno">−</button>' +
+            '<span class="qty-value" id="qty-value" data-max="1">1</span>' +
+            '<button type="button" class="qty-btn" id="qty-plus-btn" onclick="changeDetailQty(1)" aria-label="Agregar uno">+</button>' +
           '</div>' +
+          '<p class="stock-hint" id="stock-hint"></p>' +
         '</div>' +
         '<button class="btn-add-to-cart-detail" id="add-to-cart-btn"' +
-          (hasVars ? ' disabled' : '') +
+          (hasVars ? ' disabled' : (p.stock_available === false ? ' disabled' : '')) +
           ' onclick="addDetailToCart()">' +
           'Añadir al carrito' +
         '</button>' +
@@ -979,6 +1079,17 @@ function renderProductDetail(p, container) {
     bcCat.href = 'tienda.html?category=' + p.category.id;
   }
   if (bcProd) bcProd.textContent = p.name;
+
+  if (!hasVars) {
+    var noVarStock = getProductStockTotal(p);
+    if (noVarStock != null) {
+      _setDetailQtyMax(noVarStock);
+      var addBtnNoVar = container.querySelector('#add-to-cart-btn');
+      if (addBtnNoVar) addBtnNoVar.disabled = noVarStock <= 0;
+    } else {
+      _setDetailQtyMax(null);
+    }
+  }
 }
 
 function _switchGalleryImg(idx, imgs) {
@@ -1059,28 +1170,52 @@ function _resolveVariant() {
 
 function _applyVariantStock(v) {
   if (!v) return;
-  var inStock = variantHasStock(v);
+  var maxStock = getVariantStock(v);
+  var inStock = maxStock > 0;
   var addBtn  = document.querySelector('#add-to-cart-btn');
-  var qtyEl   = document.querySelector('#qty-value, #detail-qty');
   if (addBtn) addBtn.disabled = !inStock;
-  if (qtyEl && inStock) {
-    window._detailQty  = 1;
-    qtyEl.textContent  = 1;
-    qtyEl.dataset.max  = v.stock;
+  if (inStock) {
+    window._detailQty = 1;
+    _setDetailQtyMax(maxStock);
+  } else {
+    _updateStockHint(0);
   }
 }
 
 window.changeDetailQty = function (delta) {
   var el  = document.querySelector('#qty-value') || document.querySelector('#detail-qty');
-  var max = parseInt(el && el.dataset.max) || 999;
-  window._detailQty = Math.min(max, Math.max(1, (window._detailQty || 1) + delta));
+  var max = parseInt(el && el.dataset.max, 10) || 1;
+  var next = Math.min(max, Math.max(1, (window._detailQty || 1) + delta));
+  if (delta > 0 && next === window._detailQty && max > 0) {
+    showToast(max === 1 ? 'Solo hay 1 unidad disponible.' : 'Solo hay ' + max + ' unidades disponibles.', 'error', 3000);
+  }
+  window._detailQty = next;
   if (el) el.textContent = window._detailQty;
+  var plusBtn = document.querySelector('#qty-plus-btn');
+  if (plusBtn) plusBtn.disabled = window._detailQty >= max;
 };
 
 window.addDetailToCart = function () {
   var p = window._currentProduct;
   if (!p) return;
-  GaiaCart.addItem(p, window._selectedVariant, window._detailQty || 1);
+  var maxStock = getMaxStockForSelection(p, window._selectedVariant);
+  if ((p.variants || []).length && !window._selectedVariant) {
+    showToast('Selecciona color y talle', 'error');
+    return;
+  }
+  if (maxStock !== null && maxStock <= 0) {
+    showToast('Producto sin stock', 'error');
+    return;
+  }
+  if (maxStock !== null && (window._detailQty || 1) > maxStock) {
+    showToast('Solo hay ' + maxStock + ' unidades disponibles.', 'error');
+    return;
+  }
+  var result = GaiaCart.addItem(p, window._selectedVariant, window._detailQty || 1);
+  if (!result.ok) {
+    showToast(result.message || 'Stock insuficiente', 'error');
+    return;
+  }
   showToast(p.name + ' añadido al carrito', 'success');
   var btn = document.querySelector('#add-to-cart-btn');
   if (btn) {
@@ -1093,8 +1228,20 @@ window.addDetailToCart = function () {
 window.buyNow = function () {
   var p = window._currentProduct;
   if (!p) return;
-  GaiaCart.addItem(p, window._selectedVariant, window._detailQty || 1);
+  var result = GaiaCart.addItem(p, window._selectedVariant, window._detailQty || 1);
+  if (!result.ok) {
+    showToast(result.message || 'Stock insuficiente', 'error');
+    return;
+  }
   location.href = 'checkout.html';
+};
+
+window.cartChangeQty = function (itemId, qty) {
+  var result = GaiaCart.updateQty(itemId, qty);
+  if (!result.ok) {
+    showToast(result.message || 'Stock insuficiente', 'error', 3000);
+  }
+  renderCartPage();
 };
 
 // ── Relacionados ───────────────────────────────────────────────────────────────
@@ -1368,16 +1515,19 @@ function renderCartPage() {
     '<span style="text-align:center">Precio</span><span style="text-align:center">Cantidad</span>' +
     '<span style="text-align:right">Subtotal</span><span></span></div>' +
     items.map(function (item) {
+      var atMax = item.max_stock != null && item.quantity >= item.max_stock;
       return '<div class="cart-row" data-id="' + item.id + '">' +
         '<div class="cart-row__img"><img src="' + (item.image || 'https://placehold.co/80x80/faf7f5/c78271?text=G') + '"' +
           ' alt="' + item.name + '" onerror="handleImgError(this)"></div>' +
         '<div class="cart-row__info"><p class="cart-row__name">' + item.name + '</p>' +
-          (item.variant_label ? '<p class="cart-row__variant">' + item.variant_label + '</p>' : '') + '</div>' +
+          (item.variant_label ? '<p class="cart-row__variant">' + item.variant_label + '</p>' : '') +
+          (item.max_stock != null ? '<p class="cart-row__stock-hint">' + item.max_stock + ' en stock</p>' : '') + '</div>' +
         '<div class="cart-row__price">' + formatPrice(item.price) + '</div>' +
         '<div class="cart-row__qty">' +
-          '<button class="qty-btn" onclick="GaiaCart.updateQty(\'' + item.id + '\',' + (item.quantity - 1) + ')" aria-label="Quitar uno">−</button>' +
+          '<button type="button" class="qty-btn" onclick="cartChangeQty(\'' + item.id + '\',' + (item.quantity - 1) + ')" aria-label="Quitar uno">−</button>' +
           '<span class="qty-value">' + item.quantity + '</span>' +
-          '<button class="qty-btn" onclick="GaiaCart.updateQty(\'' + item.id + '\',' + (item.quantity + 1) + ')" aria-label="Agregar uno">+</button>' +
+          '<button type="button" class="qty-btn"' + (atMax ? ' disabled' : '') +
+            ' onclick="cartChangeQty(\'' + item.id + '\',' + (item.quantity + 1) + ')" aria-label="Agregar uno">+</button>' +
         '</div>' +
         '<div class="cart-row__subtotal">' + formatPrice(item.price * item.quantity) + '</div>' +
         '<div class="cart-row__remove"><button class="cart-item__remove"' +
