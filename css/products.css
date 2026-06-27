@@ -296,6 +296,10 @@
   border: 2px solid rgba(0, 0, 0, .18);
 }
 .swatch-detail.active { border-color: var(--color-primary); }
+.swatch-detail.oos {
+  opacity: .45;
+  cursor: not-allowed;
+}
 
 .product-card__colors {
   display: flex;

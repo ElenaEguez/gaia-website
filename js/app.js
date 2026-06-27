@@ -326,10 +326,16 @@ function productHasStock(product) {
   var variants = product.variants || [];
   if (variants.length) {
     return variants.some(function (v) {
-      return v.disponible !== false && (v.stock > 0 || v.disponible === true);
+      return variantHasStock(v);
     });
   }
   return true;
+}
+
+function variantHasStock(v) {
+  if (!v) return false;
+  if (v.disponible === false) return false;
+  return (v.stock || 0) > 0;
 }
 
 function getProductBadge(product) {
@@ -855,8 +861,11 @@ function renderProductDetail(p, container) {
       '<div class="detail-swatches" id="color-swatches">' +
         colorNames.map(function (c) {
           var hex = variantMap[c] || getColorFallback(c);
-          return '<button class="swatch-detail" style="background-color:' + hex + '"' +
-            ' data-color="' + c + '" title="' + c + '" onclick="selectDetailColor(\'' + c + '\',this)"></button>';
+          var inStock = variants.some(function (v) { return v.color === c && variantHasStock(v); });
+          return '<button class="swatch-detail' + (!inStock ? ' oos' : '') + '" style="background-color:' + hex + '"' +
+            ' data-color="' + c + '" title="' + c + (inStock ? '' : ' (agotado)') + '"' +
+            (inStock ? '' : ' disabled') +
+            ' onclick="selectDetailColor(\'' + c + '\',this)"></button>';
         }).join('') +
       '</div>' +
     '</div>';
@@ -872,8 +881,9 @@ function renderProductDetail(p, container) {
       '<p class="option-label">TALLE: <strong id="selected-talle-name"></strong></p>' +
       '<div class="detail-talles" id="talle-options">' +
         sizes.map(function (s) {
-          var inStock = variants.some(function (v) { return v.size === s && v.stock > 0; });
+          var inStock = variants.some(function (v) { return v.size === s && variantHasStock(v); });
           return '<button class="talle-btn' + (!inStock ? ' oos' : '') + '" data-size="' + s + '"' +
+            (inStock ? '' : ' disabled') +
             ' onclick="selectDetailSize(\'' + s + '\',this)">' + s + '</button>';
         }).join('') +
       '</div>' +
@@ -990,6 +1000,7 @@ function _switchGalleryImg(idx, imgs) {
 // ── Selectores de variante detalle ────────────────────────────────────────────
 
 window.selectDetailColor = function (color, btn) {
+  if (!btn || btn.disabled || btn.classList.contains('oos')) return;
   document.querySelectorAll('.swatch-detail').forEach(function (s) { s.classList.remove('active'); });
   btn.classList.add('active');
   window._selectedColor = color;
@@ -999,6 +1010,7 @@ window.selectDetailColor = function (color, btn) {
 };
 
 window.selectDetailSize = function (size, btn) {
+  if (!btn || btn.disabled || btn.classList.contains('oos')) return;
   document.querySelectorAll('.talle-btn').forEach(function (s) { s.classList.remove('active'); });
   btn.classList.add('active');
   window._selectedSize = size;
@@ -1047,7 +1059,7 @@ function _resolveVariant() {
 
 function _applyVariantStock(v) {
   if (!v) return;
-  var inStock = v.stock > 0;
+  var inStock = variantHasStock(v);
   var addBtn  = document.querySelector('#add-to-cart-btn');
   var qtyEl   = document.querySelector('#qty-value, #detail-qty');
   if (addBtn) addBtn.disabled = !inStock;
