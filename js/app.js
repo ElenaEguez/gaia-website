@@ -279,37 +279,86 @@ window.imgSrc = imgSrc;
 
 // ── Color helpers ──────────────────────────────────────────────────────────────
 
+var _COLOR_HEX_DEFAULT = '#9e9e9e';
+
+function _normalizeColorName(name) {
+  return (name || '')
+    .toLowerCase()
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function _normalizeHex(hex) {
+  if (!hex) return '';
+  var h = String(hex).trim();
+  if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(h)) return h.toLowerCase();
+  if (/^([0-9a-f]{3}|[0-9a-f]{6})$/i.test(h)) return '#' + h.toLowerCase();
+  return '';
+}
+
+function _variantDirectHex(variant) {
+  if (!variant) return '';
+  return _normalizeHex(
+    variant.color_hex || variant.hex || variant.hex_color || variant.color_code || variant.colour_hex
+  );
+}
+
+var _COLOR_NAME_MAP = {
+  'negro': '#111111', 'negra': '#111111', 'black': '#111111',
+  'blanco': '#f5f5f0', 'blanca': '#f5f5f0', 'white': '#ffffff',
+  'rojo': '#c0392b', 'roja': '#c0392b', 'red': '#c0392b',
+  'bordo': '#6d1a2a', 'vino': '#722f37', 'guinda': '#6d1a2a', 'vinotinto': '#722f37',
+  'nude': '#c9a882', 'beige': '#d4b896', 'crema': '#f5f0e6', 'hueso': '#e8dcc8',
+  'camel': '#c19a6b', 'marron': '#795548', 'cafe': '#795548', 'chocolate': '#5d4037',
+  'rosa': '#e8b4b8', 'fucsia': '#c71585', 'rosado': '#f48fb1', 'rosada': '#f48fb1', 'pink': '#f48fb1',
+  'verde': '#2d6a4f', 'verde botella': '#2d5a27', 'verde oliva': '#556b2f',
+  'azul': '#1a3a5c', 'azul marino': '#001f3f', 'jeans azul': '#3d5a80', 'denim': '#3d5a80',
+  'celeste': '#4fc3f7', 'cielo': '#87ceeb',
+  'gris': '#888888', 'plata': '#aaaaaa', 'plateado': '#9e9e9e', 'silver': '#9e9e9e',
+  'dorado': '#c9a84c', 'gold': '#c9a84c', 'mostaza': '#c9a227',
+  'animal print': '#8b6914', 'leopardo': '#8b6914',
+  'naranja': '#fb8c00', 'orange': '#fb8c00',
+  'morado': '#8e24aa', 'violeta': '#7b1fa2', 'lila': '#ba68c8', 'purpura': '#7b1fa2',
+  'turquesa': '#00acc1', 'teal': '#00897b',
+  'coral': '#ff7043',
+  'amarillo': '#fdd835', 'yellow': '#fdd835',
+  'ivory': '#fffff0', 'marfil': '#fffff0',
+  'multicolor': '#bdbdbd', 'estampado': '#bdbdbd',
+};
+
+var _COLOR_NAME_KEYS_SORTED = Object.keys(_COLOR_NAME_MAP).sort(function (a, b) {
+  return b.length - a.length;
+});
+
 function getColorFallback(name) {
-  name = (name || '').toLowerCase().trim();
-  var map = {
-    'negro': '#111111', 'black': '#111111',
-    'blanco': '#f5f5f0', 'white': '#f5f5f0',
-    'rojo': '#c0392b',
-    'bordó': '#6d1a2a', 'bordo': '#6d1a2a', 'vino': '#722f37',
-    'nude': '#c9a882', 'beige': '#d4b896',
-    'camel': '#c19a6b', 'marrón': '#795548', 'marron': '#795548', 'cafe': '#795548',
-    'rosa': '#e8b4b8', 'fucsia': '#c71585', 'rosado': '#f48fb1', 'pink': '#f48fb1',
-    'verde': '#2d6a4f', 'verde botella': '#2d5a27',
-    'azul': '#1a3a5c', 'azul marino': '#001f3f', 'celeste': '#4fc3f7',
-    'gris': '#888888', 'plata': '#aaaaaa', 'plateado': '#9e9e9e', 'silver': '#9e9e9e',
-    'dorado': '#c9a84c', 'gold': '#c9a84c',
-    'animal print': '#8b6914', 'leopardo': '#8b6914',
-    'naranja': '#fb8c00', 'orange': '#fb8c00',
-    'morado': '#8e24aa', 'violeta': '#7b1fa2', 'lila': '#ba68c8',
-    'turquesa': '#00acc1', 'teal': '#00897b',
-    'coral': '#ff7043',
-    'amarillo': '#fdd835', 'yellow': '#fdd835',
-  };
-  return map[name] || '#c78271';
+  var normalized = _normalizeColorName(name);
+  if (!normalized) return _COLOR_HEX_DEFAULT;
+  if (_COLOR_NAME_MAP[normalized]) return _COLOR_NAME_MAP[normalized];
+  for (var i = 0; i < _COLOR_NAME_KEYS_SORTED.length; i++) {
+    var key = _COLOR_NAME_KEYS_SORTED[i];
+    if (normalized.indexOf(key) !== -1) return _COLOR_NAME_MAP[key];
+  }
+  return _COLOR_HEX_DEFAULT;
 }
 window.getColorFallback = getColorFallback;
 
+function getColorHexForName(colorName, variants) {
+  var directHex = '';
+  (variants || []).forEach(function (v) {
+    if (v.color !== colorName) return;
+    var hex = _variantDirectHex(v);
+    if (hex) directHex = hex;
+  });
+  if (directHex) return directHex;
+  return getColorFallback(colorName);
+}
+window.getColorHexForName = getColorHexForName;
+
 function getVariantColorValue(variant) {
   if (!variant) return '';
-  var directHex = variant.color_hex || variant.hex || variant.hex_color || variant.color_code || variant.colour_hex;
-  if (directHex && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(directHex)) {
-    return directHex;
-  }
+  var directHex = _variantDirectHex(variant);
+  if (directHex) return directHex;
   return getColorFallback(variant.color || variant.variant_value || '');
 }
 window.getVariantColorValue = getVariantColorValue;
@@ -445,7 +494,7 @@ function renderProductCard(product) {
     var c = (v.color || v.variant_value || '').trim();
     if (c && !seen[c]) {
       seen[c] = true;
-      colorData.push({ name: c, value: getVariantColorValue(v) });
+      colorData.push({ name: c, value: getColorHexForName(c, variants) });
     }
   });
 
@@ -945,21 +994,17 @@ function renderProductDetail(p, container) {
   if (hasColors) {
     var colorNames = [];
     var seen = {};
-    var variantMap = {};
     variants.forEach(function (v) {
       if (v.color && !seen[v.color]) {
         seen[v.color] = true;
         colorNames.push(v.color);
-      }
-      if (v.color) {
-        variantMap[v.color] = v.color_hex || null;
       }
     });
     colorHtml = '<div class="detail-option">' +
       '<p class="option-label">COLOR: <strong id="selected-color-name"></strong></p>' +
       '<div class="detail-swatches" id="color-swatches">' +
         colorNames.map(function (c) {
-          var hex = variantMap[c] || getColorFallback(c);
+          var hex = getColorHexForName(c, variants);
           var inStock = variants.some(function (v) { return v.color === c && variantHasStock(v); });
           return '<button class="swatch-detail' + (!inStock ? ' oos' : '') + '" style="background-color:' + hex + '"' +
             ' data-color="' + c + '" title="' + c + (inStock ? '' : ' (agotado)') + '"' +
