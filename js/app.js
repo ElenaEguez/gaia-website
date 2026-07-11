@@ -1468,7 +1468,7 @@ async function initCheckout() {
       var qrName         = document.querySelector('#qr-method-name');
       var showQR = ['banco_union'].includes(radio.value);
       if (qrPreview) qrPreview.style.display = showQR ? '' : 'none';
-      if (qrName)    qrName.textContent = radio.value === 'banco_union' ? 'Banco Unión' : 'Pago QR';
+      if (qrName)    qrName.textContent = radio.value === 'banco_union' ? 'Banco' : 'Pago QR';
       var qrMethod = storeData && storeData.payment_methods && storeData.payment_methods.find(function (m) { return m.type === 'qr'; });
       if (qrPreviewImg) {
         qrPreviewImg.src = (qrMethod && qrMethod.qr_image) || 'https://placehold.co/200x200/e8d5b0/9e7d4a?text=QR+Pago';
