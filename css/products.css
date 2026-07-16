@@ -429,6 +429,21 @@
   text-decoration: line-through;
 }
 
+/* Validación visual: opción faltante al añadir al carrito */
+.detail-swatches.campo-requerido,
+.detail-talles.campo-requerido {
+  outline: 2px solid rgba(199, 130, 113, 0.75);
+  outline-offset: 4px;
+  border-radius: 10px;
+  animation: campo-requerido-shake 0.45s ease;
+}
+
+@keyframes campo-requerido-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-3px); }
+  40%, 80% { transform: translateX(3px); }
+}
+
 .qty-selector {
   display: inline-flex;
   align-items: center;

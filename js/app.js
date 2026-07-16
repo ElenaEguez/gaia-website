@@ -1063,7 +1063,7 @@ function renderProductDetail(p, container) {
           '<p class="stock-hint" id="stock-hint"></p>' +
         '</div>' +
         '<button class="btn-add-to-cart-detail" id="add-to-cart-btn"' +
-          (hasVars ? ' disabled' : (p.stock_available === false ? ' disabled' : '')) +
+          (p.stock_available === false ? ' disabled' : '') +
           ' onclick="addDetailToCart()">' +
           'Añadir al carrito' +
         '</button>' +
@@ -1162,6 +1162,8 @@ window.selectDetailColor = function (color, btn) {
   window._selectedColor = color;
   var lbl = document.querySelector('#selected-color-name');
   if (lbl) lbl.textContent = color;
+  var colorWrap = document.querySelector('#color-swatches');
+  if (colorWrap) colorWrap.classList.remove('campo-requerido');
   _resolveVariant();
 };
 
@@ -1172,6 +1174,8 @@ window.selectDetailSize = function (size, btn) {
   window._selectedSize = size;
   var lbl = document.querySelector('#selected-talle-name');
   if (lbl) lbl.textContent = size;
+  var talleWrap = document.querySelector('#talle-options');
+  if (talleWrap) talleWrap.classList.remove('campo-requerido');
   _resolveVariant();
 };
 
@@ -1208,8 +1212,9 @@ function _resolveVariant() {
   if (found) {
     _applyVariantStock(found);
   } else {
+    // Sin selección completa o sin match: botón clickeable para validación (solo se deshabilita por stock)
     var addBtn = document.querySelector('#add-to-cart-btn');
-    if (addBtn) addBtn.disabled = true;
+    if (addBtn) addBtn.disabled = false;
   }
 }
 
@@ -1218,6 +1223,7 @@ function _applyVariantStock(v) {
   var maxStock = getVariantStock(v);
   var inStock = maxStock > 0;
   var addBtn  = document.querySelector('#add-to-cart-btn');
+  // Solo deshabilitar por falta de stock, nunca por falta de selección
   if (addBtn) addBtn.disabled = !inStock;
   if (inStock) {
     window._detailQty = 1;
@@ -1225,6 +1231,19 @@ function _applyVariantStock(v) {
   } else {
     _updateStockHint(0);
   }
+}
+
+/** Resalta opciones faltantes (~3s) y limpia el timer anterior. */
+function _highlightMissingOptions(needColor, needSize) {
+  var colorWrap = document.querySelector('#color-swatches');
+  var talleWrap = document.querySelector('#talle-options');
+  clearTimeout(window._campoRequeridoTimer);
+  if (colorWrap) colorWrap.classList.toggle('campo-requerido', !!needColor);
+  if (talleWrap) talleWrap.classList.toggle('campo-requerido', !!needSize);
+  window._campoRequeridoTimer = setTimeout(function () {
+    if (colorWrap) colorWrap.classList.remove('campo-requerido');
+    if (talleWrap) talleWrap.classList.remove('campo-requerido');
+  }, 3000);
 }
 
 window.changeDetailQty = function (delta) {
@@ -1245,7 +1264,22 @@ window.addDetailToCart = function () {
   if (!p) return;
   var maxStock = getMaxStockForSelection(p, window._selectedVariant);
   if ((p.variants || []).length && !window._selectedVariant) {
-    showToast('Selecciona color y talle', 'error');
+    var hasSizes  = p.variants.some(function (v) { return v.size; });
+    var hasColors = p.variants.some(function (v) { return v.color; });
+    var needColor = hasColors && !window._selectedColor;
+    var needSize  = hasSizes && !window._selectedSize;
+    var msg;
+    if (needColor && needSize) {
+      msg = 'Por favor selecciona color y talle';
+    } else if (needColor) {
+      msg = 'Por favor selecciona un color';
+    } else if (needSize) {
+      msg = 'Por favor selecciona un talle';
+    } else {
+      msg = 'Esa combinación no está disponible';
+    }
+    showToast(msg, 'error');
+    if (needColor || needSize) _highlightMissingOptions(needColor, needSize);
     return;
   }
   if (maxStock !== null && maxStock <= 0) {
