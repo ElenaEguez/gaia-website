@@ -1097,7 +1097,7 @@ function renderProductDetail(p, container) {
     var sizeSeen = {};
     variants.forEach(function (v) { if (v.size && !sizeSeen[v.size]) { sizeSeen[v.size] = true; sizes.push(v.size); } });
     talleHtml = '<div class="detail-option">' +
-      '<p class="option-label">TALLE: <strong id="selected-talle-name"></strong></p>' +
+      '<p class="option-label">TALLA: <strong id="selected-talle-name"></strong></p>' +
       '<div class="detail-talles" id="talle-options">' +
         sizes.map(function (s) {
           var inStock = variants.some(function (v) { return v.size === s && variantHasStock(v); });
@@ -1345,11 +1345,11 @@ window.addDetailToCart = function () {
     var needSize  = hasSizes && !window._selectedSize;
     var msg;
     if (needColor && needSize) {
-      msg = 'Por favor selecciona color y talle';
+      msg = 'Por favor selecciona color y talla';
     } else if (needColor) {
       msg = 'Por favor selecciona un color';
     } else if (needSize) {
-      msg = 'Por favor selecciona un talle';
+      msg = 'Por favor selecciona una talla';
     } else {
       msg = 'Esa combinación no está disponible';
     }
