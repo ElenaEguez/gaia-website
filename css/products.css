@@ -444,6 +444,26 @@
   40%, 80% { transform: translateX(3px); }
 }
 
+.hint-variante {
+  margin: 0.35rem 0 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--color-text-muted, #9a8f8a);
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.hint-variante.is-selected {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.detail-swatches.campo-requerido ~ .hint-variante,
+.detail-talles.campo-requerido ~ .hint-variante {
+  color: var(--color-primary, #c78271);
+  opacity: 1;
+}
+
 .qty-selector {
   display: inline-flex;
   align-items: center;

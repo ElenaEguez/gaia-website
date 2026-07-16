@@ -110,6 +110,16 @@ function initNavDropdowns() {
 }
 
 /**
+ * Orden alfabético de categorías para UI (es, ignora acentos/mayúsculas).
+ * No muta el array original.
+ */
+function sortCategoriesByName(cats) {
+  return (cats || []).slice().sort(function (a, b) {
+    return String(a.name || '').localeCompare(String(b.name || ''), 'es', { sensitivity: 'base' });
+  });
+}
+
+/**
  * Nav de categorías:
  * - Desktop: hasta 3 destacadas top-level + mega-menú bajo TIENDA con todas.
  * - Móvil: lista completa top-level en el drawer (sin cambios de UX).
@@ -162,7 +172,9 @@ function initNavCategories() {
   GaiaAPI.getCategories().then(function (cats) {
     if (!cats || !cats.length) return;
 
-    // Mega-menú / dropdown: Ver Todo + todas las categorías
+    var catsSorted = sortCategoriesByName(cats);
+
+    // Mega-menú / dropdown: Ver Todo + todas las categorías (A–Z)
     var dropdown = nav.querySelector('.nav-item.has-dropdown .dropdown-menu');
     if (dropdown) {
       dropdown.classList.add('mega-menu');
@@ -174,7 +186,7 @@ function initNavCategories() {
       verLi.appendChild(makeCatLink('tienda.html', 'Ver Todo'));
       dropdown.appendChild(verLi);
 
-      cats.forEach(function (c) {
+      catsSorted.forEach(function (c) {
         if (!c || c.id == null) return;
         var li = document.createElement('li');
         li.className = 'mega-menu__item';
@@ -204,7 +216,7 @@ function initNavCategories() {
 
     var frag = document.createDocumentFragment();
 
-    // Destacadas (orden de CATEGORIAS_DESTACADAS) — visibles en desktop y móvil
+    // Destacadas: orden manual de CATEGORIAS_DESTACADAS (no alfabético)
     featuredIds.forEach(function (id) {
       var found = null;
       for (var i = 0; i < cats.length; i++) {
@@ -213,8 +225,8 @@ function initNavCategories() {
       if (found) frag.appendChild(makeTopLevelCat(found, 'nav-item--featured'));
     });
 
-    // Resto: solo móviles (drawer). Desktop las oculta vía CSS.
-    cats.forEach(function (c) {
+    // Resto móvil: A–Z. Desktop las oculta vía CSS.
+    catsSorted.forEach(function (c) {
       if (!c || c.id == null) return;
       if (featuredSet[String(c.id)]) return;
       frag.appendChild(makeTopLevelCat(c, 'nav-item--mobile-only'));
@@ -727,7 +739,7 @@ async function initHome() {
 
   // Categorías visuales
   try {
-    var cats = await GaiaAPI.getCategories();
+    var cats = sortCategoriesByName(await GaiaAPI.getCategories());
     if (catsVisual) {
       catsVisual.innerHTML = cats.length
         ? cats.slice(0, 3).map(function (c) {
@@ -1132,6 +1144,7 @@ function renderProductDetail(p, container) {
             ' onclick="selectDetailColor(\'' + c + '\',this)"></button>';
         }).join('') +
       '</div>' +
+      '<p class="hint-variante" id="hint-color">Selecciona un color</p>' +
     '</div>';
   }
 
@@ -1151,6 +1164,7 @@ function renderProductDetail(p, container) {
             ' onclick="selectDetailSize(\'' + s + '\',this)">' + s + '</button>';
         }).join('') +
       '</div>' +
+      '<p class="hint-variante" id="hint-talla">Selecciona una talla</p>' +
     '</div>';
   }
 
@@ -1284,6 +1298,8 @@ window.selectDetailColor = function (color, btn) {
   if (lbl) lbl.textContent = color;
   var colorWrap = document.querySelector('#color-swatches');
   if (colorWrap) colorWrap.classList.remove('campo-requerido');
+  var hintColor = document.querySelector('#hint-color');
+  if (hintColor) hintColor.classList.add('is-selected');
   _resolveVariant();
 };
 
@@ -1296,6 +1312,8 @@ window.selectDetailSize = function (size, btn) {
   if (lbl) lbl.textContent = size;
   var talleWrap = document.querySelector('#talle-options');
   if (talleWrap) talleWrap.classList.remove('campo-requerido');
+  var hintTalla = document.querySelector('#hint-talla');
+  if (hintTalla) hintTalla.classList.add('is-selected');
   _resolveVariant();
 };
 
