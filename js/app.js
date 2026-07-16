@@ -108,6 +108,81 @@ function initNavDropdowns() {
 }
 
 /**
+ * Inyecta todas las categorías del API en #main-nav (top-level).
+ * Usa ?category=<id> — mismo formato que home/filtros; _resolveCategoryId acepta IDs.
+ * Skip en checkout/confirmacion. Fallback silencioso si falla la API.
+ */
+function initNavCategories() {
+  var page = document.body && document.body.dataset.page;
+  if (page === 'checkout' || page === 'confirmacion') return;
+
+  var nav = document.getElementById('main-nav');
+  if (!nav || typeof GaiaAPI === 'undefined' || !GaiaAPI.getCategories) return;
+
+  function isFixedNavItem(li) {
+    if (!li || !li.classList) return false;
+    if (li.classList.contains('has-dropdown')) return true;
+    var a = li.querySelector('a.nav-link');
+    var href = (a && a.getAttribute('href')) || '';
+    return /nosotros\.html|contacto\.html/i.test(href);
+  }
+
+  function isCategoryNavItem(li) {
+    if (!li || isFixedNavItem(li)) return false;
+    if (li.classList.contains('nav-item--category')) return true;
+    var a = li.querySelector('a.nav-link');
+    var href = (a && a.getAttribute('href')) || '';
+    return href.indexOf('tienda.html?category=') !== -1 || href.indexOf('category=') !== -1;
+  }
+
+  GaiaAPI.getCategories().then(function (cats) {
+    if (!cats || !cats.length) return;
+
+    // Dropdown "Tienda": dejar Ver Todo; quitar categorías duplicadas
+    var dropdown = nav.querySelector('.nav-item.has-dropdown .dropdown-menu');
+    if (dropdown) {
+      Array.prototype.slice.call(dropdown.children).forEach(function (li) {
+        var a = li.querySelector('a');
+        var href = (a && a.getAttribute('href')) || '';
+        if (href.indexOf('category=') !== -1) li.parentNode.removeChild(li);
+      });
+    }
+
+    // Quitar top-level hardcodeados (Vestidos, Blusas, etc.)
+    Array.prototype.slice.call(nav.children).forEach(function (li) {
+      if (isCategoryNavItem(li)) li.parentNode.removeChild(li);
+    });
+
+    // Insertar antes de Nosotros/Contacto
+    var anchor = null;
+    Array.prototype.slice.call(nav.children).forEach(function (li) {
+      if (!anchor && isFixedNavItem(li) && !li.classList.contains('has-dropdown')) {
+        anchor = li;
+      }
+    });
+
+    var frag = document.createDocumentFragment();
+    cats.forEach(function (c) {
+      if (!c || c.id == null) return;
+      var li = document.createElement('li');
+      li.className = 'nav-item nav-item--category';
+      var a = document.createElement('a');
+      a.className = 'nav-link';
+      // ID numérico: _resolveCategoryId lo acepta directo (igual que home #categories-visual)
+      a.href = 'tienda.html?category=' + encodeURIComponent(String(c.id));
+      a.textContent = c.name || ('Categoría ' + c.id);
+      li.appendChild(a);
+      frag.appendChild(li);
+    });
+
+    if (anchor) nav.insertBefore(frag, anchor);
+    else nav.appendChild(frag);
+  }).catch(function () {
+    // Fallback: menú HTML estático intacto
+  });
+}
+
+/**
  * Menú hamburguesa (móvil): panel lateral, velo y cierre por Escape / resize.
  */
 function initMobileNav() {
@@ -1919,6 +1994,7 @@ document.addEventListener('DOMContentLoaded', function () {
   initNavbar();
   initMobileNav();
   initNavDropdowns();
+  initNavCategories();
   initSiteSearch();
   _initStoreLinks();
 

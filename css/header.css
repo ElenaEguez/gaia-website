@@ -284,6 +284,25 @@
   .main-nav {
     grid-column: 2;
     justify-content: center;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 2px;
+    min-width: 0;
+    max-width: 100%;
+    row-gap: 0;
+  }
+
+  .main-nav .nav-link {
+    padding: 5px 6px;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  .main-nav .nav-item--category .nav-link {
+    max-width: 11em;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .search-bar {
@@ -350,11 +369,23 @@
     border-bottom: 1px solid var(--color-border);
   }
 
+  .main-nav .nav-item--category {
+    flex-shrink: 0;
+  }
+
   .main-nav .nav-link {
     padding: 14px 18px;
     width: 100%;
     box-sizing: border-box;
     justify-content: flex-start;
+    text-align: left;
+  }
+
+  .main-nav .nav-item--category .nav-link {
+    max-width: none;
+    overflow: visible;
+    text-overflow: unset;
+    white-space: normal;
   }
 
   .main-nav .nav-dropdown-head {
