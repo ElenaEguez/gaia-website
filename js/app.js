@@ -62,7 +62,8 @@ function initSiteSearch() {
 }
 
 /**
- * Submenú "Tienda": botón ▾ para táctil; clic fuera o Escape cierra.
+ * Submenú "Tienda": clic / Escape / clic fuera.
+ * Hover lo maneja CSS (:hover). Compatible con mega-menú desktop.
  */
 function initNavDropdowns() {
   var items = document.querySelectorAll('.nav-item.has-dropdown');
@@ -93,6 +94,7 @@ function initNavDropdowns() {
     }
     if (menu) {
       menu.addEventListener('click', function (e) {
+        e.stopPropagation();
         if (e.target.closest('a')) closeAll();
       });
     }
@@ -108,11 +110,14 @@ function initNavDropdowns() {
 }
 
 /**
- * Inyecta todas las categorías del API en #main-nav (top-level).
- * Usa ?category=<id> — mismo formato que home/filtros; _resolveCategoryId acepta IDs.
- * Skip en checkout/confirmacion. Fallback silencioso si falla la API.
+ * Nav de categorías:
+ * - Desktop: hasta 3 destacadas top-level + mega-menú bajo TIENDA con todas.
+ * - Móvil: lista completa top-level en el drawer (sin cambios de UX).
+ * Usa ?category=<id> — mismo formato que home/filtros.
  */
 function initNavCategories() {
+  var CATEGORIAS_DESTACADAS = [13, 21, 10]; // VESTIDOS CORTOS, BIKINIS, BLUSAS — editable
+
   var page = document.body && document.body.dataset.page;
   if (page === 'checkout' || page === 'confirmacion') return;
 
@@ -135,25 +140,57 @@ function initNavCategories() {
     return href.indexOf('tienda.html?category=') !== -1 || href.indexOf('category=') !== -1;
   }
 
+  function makeCatLink(href, label) {
+    var a = document.createElement('a');
+    a.href = href;
+    a.textContent = label;
+    return a;
+  }
+
+  function makeTopLevelCat(c, extraClass) {
+    var li = document.createElement('li');
+    li.className = 'nav-item nav-item--category' + (extraClass ? ' ' + extraClass : '');
+    var a = makeCatLink(
+      'tienda.html?category=' + encodeURIComponent(String(c.id)),
+      c.name || ('Categoría ' + c.id)
+    );
+    a.className = 'nav-link';
+    li.appendChild(a);
+    return li;
+  }
+
   GaiaAPI.getCategories().then(function (cats) {
     if (!cats || !cats.length) return;
 
-    // Dropdown "Tienda": dejar Ver Todo; quitar categorías duplicadas
+    // Mega-menú / dropdown: Ver Todo + todas las categorías
     var dropdown = nav.querySelector('.nav-item.has-dropdown .dropdown-menu');
     if (dropdown) {
-      Array.prototype.slice.call(dropdown.children).forEach(function (li) {
-        var a = li.querySelector('a');
-        var href = (a && a.getAttribute('href')) || '';
-        if (href.indexOf('category=') !== -1) li.parentNode.removeChild(li);
+      dropdown.classList.add('mega-menu');
+      dropdown.setAttribute('role', 'list');
+      while (dropdown.firstChild) dropdown.removeChild(dropdown.firstChild);
+
+      var verLi = document.createElement('li');
+      verLi.className = 'mega-menu__ver-todo';
+      verLi.appendChild(makeCatLink('tienda.html', 'Ver Todo'));
+      dropdown.appendChild(verLi);
+
+      cats.forEach(function (c) {
+        if (!c || c.id == null) return;
+        var li = document.createElement('li');
+        li.className = 'mega-menu__item';
+        li.appendChild(makeCatLink(
+          'tienda.html?category=' + encodeURIComponent(String(c.id)),
+          c.name || ('Categoría ' + c.id)
+        ));
+        dropdown.appendChild(li);
       });
     }
 
-    // Quitar top-level hardcodeados (Vestidos, Blusas, etc.)
+    // Quitar top-level hardcodeados / previos
     Array.prototype.slice.call(nav.children).forEach(function (li) {
       if (isCategoryNavItem(li)) li.parentNode.removeChild(li);
     });
 
-    // Insertar antes de Nosotros/Contacto
     var anchor = null;
     Array.prototype.slice.call(nav.children).forEach(function (li) {
       if (!anchor && isFixedNavItem(li) && !li.classList.contains('has-dropdown')) {
@@ -161,18 +198,26 @@ function initNavCategories() {
       }
     });
 
+    var featuredIds = CATEGORIAS_DESTACADAS.slice(0, 3);
+    var featuredSet = {};
+    featuredIds.forEach(function (id) { featuredSet[String(id)] = true; });
+
     var frag = document.createDocumentFragment();
+
+    // Destacadas (orden de CATEGORIAS_DESTACADAS) — visibles en desktop y móvil
+    featuredIds.forEach(function (id) {
+      var found = null;
+      for (var i = 0; i < cats.length; i++) {
+        if (String(cats[i].id) === String(id)) { found = cats[i]; break; }
+      }
+      if (found) frag.appendChild(makeTopLevelCat(found, 'nav-item--featured'));
+    });
+
+    // Resto: solo móviles (drawer). Desktop las oculta vía CSS.
     cats.forEach(function (c) {
       if (!c || c.id == null) return;
-      var li = document.createElement('li');
-      li.className = 'nav-item nav-item--category';
-      var a = document.createElement('a');
-      a.className = 'nav-link';
-      // ID numérico: _resolveCategoryId lo acepta directo (igual que home #categories-visual)
-      a.href = 'tienda.html?category=' + encodeURIComponent(String(c.id));
-      a.textContent = c.name || ('Categoría ' + c.id);
-      li.appendChild(a);
-      frag.appendChild(li);
+      if (featuredSet[String(c.id)]) return;
+      frag.appendChild(makeTopLevelCat(c, 'nav-item--mobile-only'));
     });
 
     if (anchor) nav.insertBefore(frag, anchor);
