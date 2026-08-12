@@ -737,19 +737,29 @@ async function initHome() {
     if (store.tiktok)    document.querySelectorAll('[data-tiktok]').forEach(function (a) { a.href = store.tiktok; });
   } catch (_) {}
 
-  // Categorías visuales
+  // Categorías visuales — portadas fijas (orden y fotos editables)
+  // 0132 jackets, 0133 corset, 0134 accesorio, 0131 bikinis
+  var CATEGORIAS_VISUALES = [
+    { id: 33, label: 'JACKETS',   image: 'assets/cat-jackets.png' },
+    { id: 31, label: 'CORSET',    image: 'assets/cat-corset.png' },
+    { id: 70, label: 'ACCESORIO', image: 'assets/cat-accesorio.png' },
+    { id: 21, label: 'BIKINIS',   image: 'assets/cat-bikinis.png' },
+  ];
   try {
-    var cats = sortCategoriesByName(await GaiaAPI.getCategories());
+    var cats = await GaiaAPI.getCategories();
+    var byId = {};
+    (cats || []).forEach(function (c) { byId[String(c.id)] = c; });
     if (catsVisual) {
-      catsVisual.innerHTML = cats.length
-        ? cats.slice(0, 3).map(function (c) {
-            var bg = 'var(--color-bg-soft)';
-            return '<a href="tienda.html?category=' + c.id + '" class="cat-visual-card">' +
-              '<div class="cat-visual-card__overlay"></div>' +
-              '<span class="cat-visual-card__label">' + c.name + '</span>' +
-            '</a>';
-          }).join('')
-        : '';
+      catsVisual.innerHTML = CATEGORIAS_VISUALES.map(function (cfg) {
+        var c = byId[String(cfg.id)];
+        var hrefId = c ? c.id : cfg.id;
+        var label = cfg.label || (c && c.name) || '';
+        return '<a href="tienda.html?category=' + hrefId + '" class="cat-visual-card">' +
+          '<img class="cat-visual-card__img" src="' + cfg.image + '" alt="' + label + '" loading="lazy">' +
+          '<div class="cat-visual-card__overlay"></div>' +
+          '<span class="cat-visual-card__label">' + label + '</span>' +
+        '</a>';
+      }).join('');
     }
   } catch (_) {}
 
